@@ -84,7 +84,6 @@ const serverHostname = document.getElementById('server-hostname');
 const serverCard = document.getElementById('server-card');
 const notificationsList = document.getElementById('notifications-list');
 const notificationBadge = document.getElementById('notification-badge');
-const btnNotifications = document.getElementById('btn-notifications');
 const musicVolumeInput = document.getElementById('music-volume');
 const musicVolumeValue = document.getElementById('music-volume-value');
 
@@ -102,7 +101,6 @@ let notificationItems = [];
 let consecutiveServerOfflineChecks = 0;
 let lastDiscordPresenceState = null;
 let fivemInstallWarningShown = false;
-const SERVER_STATUS_MAX_ATTEMPTS = 1;
 const SERVER_STATUS_INTERVAL_MS = 15000;
 const SERVER_STATUS_INTERVAL_OFFLINE_MS = 30000;
 const PLAY_STATE_INTERVAL_MS = 2000;
@@ -148,9 +146,9 @@ function waitForViewExitAnimation(animatedView, onFinish) {
   });
 }
 
-function formatDisplayVersion(version) {
-  const raw = String(version || DEFAULT_APP_VERSION).trim().replace(/^v/i, '');
-  return raw || DEFAULT_APP_VERSION;
+function formatDisplayVersion(version, fallback = DEFAULT_APP_VERSION) {
+  const raw = String(version || fallback).trim().replace(/^v/i, '');
+  return raw || fallback;
 }
 
 function formatVersionLabel(version = appVersion) {
@@ -158,8 +156,7 @@ function formatVersionLabel(version = appVersion) {
 }
 
 function formatUpdateVersion(version) {
-  const raw = String(version || '').trim().replace(/^v/i, '');
-  return raw || formatDisplayVersion(appVersion);
+  return formatDisplayVersion(version || appVersion);
 }
 
 function formatBytes(bytes) {
@@ -358,17 +355,7 @@ function setManualUpdateChecking(isChecking) {
 }
 
 function clampVolumePercent(value, fallback = 22) {
-  if (value === '' || value === null || value === undefined) {
-    return fallback;
-  }
-
-  const parsed = Number(value);
-
-  if (!Number.isFinite(parsed)) {
-    return fallback;
-  }
-
-  return Math.min(100, Math.max(0, Math.round(parsed)));
+  return window.daltonSounds?.clampVolumePercent?.(value, fallback) ?? fallback;
 }
 
 function isButtonSoundsMuted() {
@@ -471,13 +458,6 @@ function sleep(ms) {
 function setInstallStatus(label, pathText = '') {
   installStatusLabel.textContent = label;
   installStatusPath.textContent = pathText ? `DIR: ${pathText.toUpperCase()}` : '';
-}
-
-function showView(view) {
-  document.querySelectorAll('.view').forEach((element) => {
-    element.classList.remove('view--active');
-  });
-  view.classList.add('view--active');
 }
 
 function transitionFromSplash(targetView) {
@@ -608,7 +588,7 @@ async function markAllNotificationsRead() {
 
 function getServerEndpoint() {
   const ip = String(config?.serverIp || '').trim();
-  const port = Number(config?.serverPort) || 30120;
+  const port = Number(config?.serverPort) || window.dalton?.defaultServerPort || 30120;
   return ip ? `${ip}:${port}` : '';
 }
 
@@ -732,26 +712,12 @@ async function queryServerStatus() {
     };
   }
 
-  let lastStatus = {
+  const status = await window.dalton.getServerStatus();
+
+  return status || {
     online: false,
     error: 'Servidor offline'
   };
-
-  for (let attempt = 1; attempt <= SERVER_STATUS_MAX_ATTEMPTS; attempt += 1) {
-    const status = await window.dalton.getServerStatus();
-
-    if (status?.online) {
-      return status;
-    }
-
-    lastStatus = status || lastStatus;
-
-    if (attempt < SERVER_STATUS_MAX_ATTEMPTS) {
-      await sleep(350);
-    }
-  }
-
-  return lastStatus;
 }
 
 async function refreshServerStatusNow() {
@@ -1023,7 +989,6 @@ function showBusyOverlay({ title, message, hint = 'No cierres el launcher.' }) {
 
   closeSidePanels();
   updateTitle.textContent = title;
-  updateTitle.setAttribute('data-text', title);
   updateMessage.textContent = message;
   updateHint.textContent = hint;
   updateProgressRow.classList.add('hidden');
@@ -1044,7 +1009,6 @@ function hideBusyOverlay() {
   updateSpinner.setAttribute('aria-hidden', 'true');
   updateProgressRow.classList.remove('hidden');
   updateTitle.textContent = 'ACTUALIZANDO';
-  updateTitle.setAttribute('data-text', 'ACTUALIZANDO');
   updateHint.textContent = 'No cierres el launcher.';
 }
 
@@ -1052,7 +1016,6 @@ function showUpdateOverlay({ title, message, hint = 'No cierres el launcher.', m
   updateInProgress = true;
   closeSidePanels();
   updateTitle.textContent = title;
-  updateTitle.setAttribute('data-text', title);
   updateMessage.textContent = message;
   updateHint.textContent = hint;
   updateActionsRow?.classList.toggle('hidden', mode !== 'ready');
@@ -1084,7 +1047,6 @@ function hideUpdateOverlay() {
   updateProgressRow.classList.remove('hidden');
   updateActionsRow?.classList.add('hidden');
   updateTitle.textContent = 'ACTUALIZANDO';
-  updateTitle.setAttribute('data-text', 'ACTUALIZANDO');
   updateMessage.textContent = 'Descargando componentes...';
   updateHint.textContent = 'No cierres el launcher.';
   progressBar.style.width = '0%';

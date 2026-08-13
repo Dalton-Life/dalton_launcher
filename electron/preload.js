@@ -1,8 +1,10 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const { version: packageVersion } = require('../package.json');
+const { DEFAULT_PORT } = require('./fivem-launch');
 
 contextBridge.exposeInMainWorld('dalton', {
   packageVersion,
+  defaultServerPort: DEFAULT_PORT,
   getVersion: () => ipcRenderer.invoke('app:get-version'),
   relaunchApp: () => ipcRenderer.invoke('app:relaunch'),
   getConfig: () => ipcRenderer.invoke('config:get'),

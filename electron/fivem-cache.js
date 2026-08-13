@@ -1,4 +1,3 @@
-const fs = require('fs');
 const fsp = require('fs/promises');
 const path = require('path');
 const { getFiveMPlayState } = require('./fivem-launch');
@@ -50,15 +49,6 @@ async function clearFiveMCache() {
     return {
       ok: false,
       message: 'No se encontró la carpeta de datos de FiveM. ¿Está FiveM instalado?'
-    };
-  }
-
-  const playState = getFiveMPlayState();
-
-  if (playState.running || playState.inGame) {
-    return {
-      ok: false,
-      message: 'Cierra FiveM completamente antes de borrar la caché.'
     };
   }
 
@@ -116,7 +106,5 @@ async function clearFiveMCache() {
 }
 
 module.exports = {
-  CACHE_DIRS,
-  getFiveMDataPath,
   clearFiveMCache
 };

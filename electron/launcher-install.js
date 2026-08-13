@@ -13,17 +13,6 @@ function getLauncherManifestPath(installRoot) {
   return path.join(installRoot, 'install.json');
 }
 
-function readLauncherManifest(installRoot) {
-  const manifestPath = getLauncherManifestPath(installRoot);
-  if (!fs.existsSync(manifestPath)) { return null; }
-
-  try {
-    return JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  } catch {
-    return null;
-  }
-}
-
 function getCriticalPaths(app) {
   const paths = [
     app.getPath('home'),
@@ -39,7 +28,7 @@ function getCriticalPaths(app) {
   return [...new Set(paths.map((entry) => path.resolve(entry)))];
 }
 
-function validateInstallRoot(installRoot, app, { requireManifest = false } = {}) {
+function validateInstallRoot(installRoot, app) {
   if (!installRoot || !app) {
     return { ok: false, message: 'Ruta de instalación inválida.' };
   }
@@ -56,18 +45,6 @@ function validateInstallRoot(installRoot, app, { requireManifest = false } = {})
   for (const criticalPath of getCriticalPaths(app)) {
     if (normalized === criticalPath.toLowerCase()) {
       return { ok: false, message: 'No se puede usar esa ubicación para instalar el launcher.' };
-    }
-  }
-
-  if (requireManifest) {
-    const manifest = readLauncherManifest(resolved);
-
-    if (!manifest) {
-      return { ok: false, message: 'No se encontró una instalación válida del launcher.' };
-    }
-
-    if (path.resolve(manifest.installPath || '') !== resolved) {
-      return { ok: false, message: 'La ruta de instalación no coincide con el manifiesto.' };
     }
   }
 
@@ -184,11 +161,9 @@ function installLauncher(app, _config, targetPath, options = {}) {
 }
 
 module.exports = {
-  LAUNCHER_FOLDER_NAME,
   getDefaultLauncherInstallPath,
   resolveInstallRoot,
   validateInstallRoot,
   isLauncherInstalled,
-  installLauncher,
-  createDesktopShortcut
+  installLauncher
 };

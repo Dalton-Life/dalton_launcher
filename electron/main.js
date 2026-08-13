@@ -8,7 +8,7 @@ const {
   isLauncherInstalled,
   installLauncher
 } = require('./launcher-install');
-const { DEFAULT_PORT, isFiveMInstalled, launchDaltonLife, getFiveMPlayState, SERVER_NOT_CONFIGURED_MESSAGE } = require('./fivem-launch');
+const { isFiveMInstalled, launchDaltonLife, getFiveMPlayState, SERVER_NOT_CONFIGURED_MESSAGE } = require('./fivem-launch');
 const { getServerStatus } = require('./fivem-server-api');
 const { getNews } = require('./news');
 const { clearFiveMCache } = require('./fivem-cache');
@@ -182,19 +182,8 @@ app.whenReady().then(async () => {
     app.setAppUserModelId('com.dalton.launcher');
   }
 
-  const startupConfig = readNormalizedConfig();
-
   createWindow();
   initAutoUpdater(mainWindow);
-
-  if (startupConfig.launcherInstalled && startupConfig.serverIp?.trim() && startupConfig.launcherInstallPath) {
-    try {
-      const { writeConnectShortcut } = require('./fivem-launch');
-      writeConnectShortcut(startupConfig.launcherInstallPath, startupConfig.serverIp, startupConfig.serverPort);
-    } catch {
-      // ignore shortcut sync errors
-    }
-  }
 
   await syncDiscordPresence('launcher');
 });
@@ -285,8 +274,7 @@ ipcMain.handle('launcher:install', async (_event, options) => {
 
     const next = writeNormalizedConfig({
       ...installResult,
-      installPath: installResult.serverInstallPath,
-      desktopShortcut: createDesktopShortcut && shortcutCreated
+      installPath: installResult.serverInstallPath
     });
 
     return {

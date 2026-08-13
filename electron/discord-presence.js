@@ -117,11 +117,6 @@ async function destroyDiscordPresence() {
   client = null;
 }
 
-function isDiscordPresenceEnabled() {
-  const env = getDiscordEnv();
-  return env.enabled;
-}
-
 async function syncDiscordPresence(state = 'idle') {
   const env = getDiscordEnv();
 
@@ -143,9 +138,6 @@ async function syncDiscordPresence(state = 'idle') {
 }
 
 module.exports = {
-  initDiscordPresence,
-  setDiscordPresence,
   destroyDiscordPresence,
-  isDiscordPresenceEnabled,
   syncDiscordPresence
 };

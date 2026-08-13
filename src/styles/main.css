@@ -29,7 +29,6 @@
   --AkrobatExtraBold: 'AkrobatExtraBold';
   --PrimaryColor: #FEFE86;
   --SecondaryColor: #7C40A0;
-  --TertiaryColor: rgba(28, 28, 28);
   --RedColor: #FF3440;
   --GreenColor: #2AC84C;
   --BackgroundLight: rgba(245, 245, 245, 0.05);
@@ -41,9 +40,7 @@
   --panel: rgba(28, 28, 28, 0.96);
   --text: #f5f5f5;
   --muted: rgba(245, 245, 245, 0.6);
-  --accent: var(--PrimaryColor);
   --accent-soft: rgba(254, 254, 134, 0.2);
-  --danger: var(--RedColor);
   --border: var(--StrokeColor);
   --font: var(--AkrobatRegular), system-ui, sans-serif;
 }
@@ -374,12 +371,6 @@ input {
   box-shadow: 0 0 0 2px rgb(28, 28, 28);
 }
 
-.icon-btn svg {
-  width: 16px;
-  height: 16px;
-  fill: currentColor;
-}
-
 .icon-btn--close:hover {
   background: rgba(255, 52, 64, 0.25);
   color: var(--RedColor);
@@ -476,6 +467,13 @@ input {
 .notifications-list {
   display: grid;
   gap: 0.75rem;
+}
+
+.news-block__empty {
+  margin: 0;
+  font-family: var(--AkrobatRegular), var(--font);
+  font-size: 0.78rem;
+  color: var(--muted);
 }
 
 .news-item {
@@ -776,8 +774,7 @@ input {
 }
 
 .settings-panel,
-.notifications-panel,
-.side-panel {
+.notifications-panel {
   position: absolute;
   top: 0;
   right: 0;
@@ -799,42 +796,36 @@ input {
 }
 
 .settings-panel::-webkit-scrollbar,
-.notifications-panel::-webkit-scrollbar,
-.side-panel::-webkit-scrollbar {
+.notifications-panel::-webkit-scrollbar {
   width: 7px;
 }
 
 .settings-panel::-webkit-scrollbar-track,
-.notifications-panel::-webkit-scrollbar-track,
-.side-panel::-webkit-scrollbar-track {
+.notifications-panel::-webkit-scrollbar-track {
   margin: 0.35rem 0;
   background: rgba(255, 255, 255, 0.04);
   border-radius: 999px;
 }
 
 .settings-panel::-webkit-scrollbar-thumb,
-.notifications-panel::-webkit-scrollbar-thumb,
-.side-panel::-webkit-scrollbar-thumb {
+.notifications-panel::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, rgba(124, 64, 160, 0.85), rgba(59, 8, 96, 0.9));
   border-radius: 999px;
   border: 1px solid rgba(254, 254, 134, 0.12);
 }
 
 .settings-panel::-webkit-scrollbar-thumb:hover,
-.notifications-panel::-webkit-scrollbar-thumb:hover,
-.side-panel::-webkit-scrollbar-thumb:hover {
+.notifications-panel::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, var(--HoverColor), var(--SecondaryColor));
 }
 
 .settings-panel::-webkit-scrollbar-thumb:active,
-.notifications-panel::-webkit-scrollbar-thumb:active,
-.side-panel::-webkit-scrollbar-thumb:active {
+.notifications-panel::-webkit-scrollbar-thumb:active {
   background: var(--SecondaryColor);
 }
 
 .settings-panel.is-open,
-.notifications-panel.is-open,
-.side-panel.is-open {
+.notifications-panel.is-open {
   transform: translateX(0);
 }
 
@@ -870,25 +861,6 @@ input {
   margin-bottom: 1.25rem;
 }
 
-.settings-input {
-  width: 100%;
-  padding: 0.65rem 0.75rem;
-  margin-bottom: 0.45rem;
-  border: 1px solid var(--StrokeColor);
-  border-radius: 6px;
-  background: var(--BackgroundLight);
-  color: var(--text);
-  font-family: var(--AkrobatRegular), var(--font);
-}
-
-.settings-input--disabled,
-.settings-input:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-  color: var(--muted);
-  background: rgba(245, 245, 245, 0.03);
-}
-
 .volume-row {
   display: flex;
   align-items: center;
@@ -916,14 +888,6 @@ input {
   letter-spacing: 0.08em;
   color: var(--PrimaryColor);
   text-align: right;
-}
-
-.settings-help {
-  margin: 0 0 1.25rem;
-  font-family: var(--AkrobatRegular), var(--font);
-  font-size: 0.72rem;
-  color: var(--muted);
-  line-height: 1.4;
 }
 
 .checkbox-grid {
@@ -1157,7 +1121,6 @@ input {
   margin-top: 1.25rem;
 }
 
-.update-actions .btn-primary,
 .update-actions .btn-secondary {
   width: 100%;
 }
@@ -1266,10 +1229,6 @@ input {
   background: rgba(28, 28, 28, 0.98);
   border: 1px solid rgba(255, 52, 64, 0.35);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-}
-
-.update-toast--info {
-  border-color: var(--border);
 }
 
 .update-toast span {

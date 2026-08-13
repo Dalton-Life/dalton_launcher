@@ -184,12 +184,8 @@ async function launchDaltonLife(serverIp, serverPort, options = {}) {
 }
 
 module.exports = {
-  CONNECT_SHORTCUT_NAME,
   DEFAULT_PORT,
   SERVER_NOT_CONFIGURED_MESSAGE,
-  buildConnectUrl,
-  getConnectShortcutPath,
-  getFiveMExecutablePath,
   getFiveMPlayState,
   isFiveMInstalled,
   launchDaltonLife,

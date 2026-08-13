@@ -4,12 +4,8 @@ const { DEFAULT_PORT, validateServerHost } = require('./fivem-launch');
 const REQUEST_TIMEOUT_MS = 5000;
 const MAX_RESPONSE_BYTES = 1024 * 1024;
 
-function normalizeServerHost(serverIp) {
-  return validateServerHost(serverIp);
-}
-
 function buildBaseUrl(serverIp, serverPort) {
-  const ip = normalizeServerHost(serverIp);
+  const ip = validateServerHost(serverIp);
   const port = Number(serverPort) || DEFAULT_PORT;
 
   return { ip, port, baseUrl: `http://${ip}:${port}` };

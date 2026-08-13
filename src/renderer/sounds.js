@@ -19,15 +19,15 @@ let buttonSoundsMuted = false;
 let backgroundMusicMuted = false;
 let backgroundMusicVolume = 0.22;
 
-function clampVolumePercent(value) {
+function clampVolumePercent(value, fallback = 0) {
   if (value === '' || value === null || value === undefined) {
-    return 0;
+    return fallback;
   }
 
   const parsed = Number(value);
 
   if (!Number.isFinite(parsed)) {
-    return 0;
+    return fallback;
   }
 
   return Math.min(100, Math.max(0, Math.round(parsed)));
@@ -94,5 +94,6 @@ window.daltonSounds = {
   refresh(settings = {}) {
     applyAudioSettings(settings);
   },
-  attachButtonSounds
+  attachButtonSounds,
+  clampVolumePercent
 };
