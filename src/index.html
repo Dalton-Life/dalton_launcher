@@ -287,8 +287,16 @@
 
         <h3 class="settings-section">Preferencias</h3>
         <div class="checkbox-grid">
-          <label><input type="checkbox" id="mute-music" /> Silenciar música de fondo</label>
-          <label><input type="checkbox" id="mute-sfx" /> Silenciar sonidos de botones</label>
+          <label class="checkbox-option">
+            <input type="checkbox" id="mute-music" />
+            <span class="checkbox-option__box" aria-hidden="true"></span>
+            <span class="checkbox-option__label">Silenciar música de fondo</span>
+          </label>
+          <label class="checkbox-option">
+            <input type="checkbox" id="mute-sfx" />
+            <span class="checkbox-option__box" aria-hidden="true"></span>
+            <span class="checkbox-option__label">Silenciar sonidos de botones</span>
+          </label>
         </div>
 
         <label class="field-label" for="music-volume">Volumen de música</label>
