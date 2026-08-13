@@ -1400,3 +1400,14 @@ input {
 .hidden {
   display: none !important;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-logo,
+  .splash-tagline,
+  .splash-mask,
+  #splash-view.splash-exit,
+  #install-view.splash-exit,
+  #home-view.home-enter {
+    animation: none !important;
+  }
+}

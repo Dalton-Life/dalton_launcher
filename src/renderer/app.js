@@ -76,6 +76,47 @@ let notificationItems = [];
 const SERVER_STATUS_MAX_ATTEMPTS = 3;
 const SERVER_STATUS_INTERVAL_MS = 15000;
 const PLAY_STATE_INTERVAL_MS = 2000;
+const SPLASH_EXIT_TIMEOUT_MS = 1000;
+const SPLASH_DELAY_MS = 2700;
+const SPLASH_DELAY_REDUCED_MS = 400;
+
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function getSplashDelayMs() {
+  return prefersReducedMotion() ? SPLASH_DELAY_REDUCED_MS : SPLASH_DELAY_MS;
+}
+
+function waitForViewExitAnimation(animatedView, onFinish) {
+  return new Promise((resolve) => {
+    let finished = false;
+
+    const finish = () => {
+      if (finished) {
+        return;
+      }
+
+      finished = true;
+      clearTimeout(timeoutId);
+      animatedView.removeEventListener('animationend', onAnimationEnd);
+      onFinish();
+      resolve();
+    };
+
+    const onAnimationEnd = (event) => {
+      if (event.target !== animatedView || event.animationName !== 'splash-view-out') {
+        return;
+      }
+
+      finish();
+    };
+
+    animatedView.addEventListener('animationend', onAnimationEnd);
+    const timeoutMs = prefersReducedMotion() ? 50 : SPLASH_EXIT_TIMEOUT_MS;
+    const timeoutId = setTimeout(finish, timeoutMs);
+  });
+}
 
 function formatDisplayVersion(version) {
   const raw = String(version || DEFAULT_APP_VERSION).trim().replace(/^v/i, '');
@@ -352,17 +393,12 @@ function showView(view) {
 }
 
 function transitionFromSplash(targetView) {
-  return new Promise((resolve) => {
-    targetView.classList.add('view--active', 'home-enter');
-    splashView.classList.add('splash-exit');
+  targetView.classList.add('view--active', 'home-enter');
+  splashView.classList.add('splash-exit');
 
-    splashView.addEventListener('animationend', (event) => {
-      if (event.target !== splashView || event.animationName !== 'splash-view-out') return;
-
-      splashView.classList.remove('view--active', 'splash-exit');
-      targetView.classList.remove('home-enter');
-      resolve();
-    });
+  return waitForViewExitAnimation(splashView, () => {
+    splashView.classList.remove('view--active', 'splash-exit');
+    targetView.classList.remove('home-enter');
   });
 }
 
@@ -375,20 +411,12 @@ function transitionToInstall() {
 }
 
 function transitionInstallToHome() {
-  return new Promise((resolve) => {
-    installView.classList.add('splash-exit');
-    homeView.classList.add('view--active', 'home-enter');
+  installView.classList.add('splash-exit');
+  homeView.classList.add('view--active', 'home-enter');
 
-    installView.addEventListener(
-      'animationend',
-      (event) => {
-        if (event.target !== installView || event.animationName !== 'splash-view-out') return;
-
-        installView.classList.remove('view--active', 'splash-exit');
-        homeView.classList.remove('home-enter');
-        resolve();
-      }
-    );
+  return waitForViewExitAnimation(installView, () => {
+    installView.classList.remove('view--active', 'splash-exit');
+    homeView.classList.remove('home-enter');
   });
 }
 
@@ -1114,7 +1142,7 @@ async function bootstrap() {
   window.daltonSounds.init(getAudioSettings());
   syncDiscordPresence('launcher');
 
-  await sleep(2700);
+  await sleep(getSplashDelayMs());
 
   if (config.launcherInstalled) {
     await transitionToHome();
