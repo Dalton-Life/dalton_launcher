@@ -8,6 +8,7 @@
   "scripts": {
     "prestart": "node scripts/sync-version-html.js",
     "start": "electron .",
+    "predev": "node scripts/sync-version-html.js",
     "dev": "electron . --enable-logging",
     "pack": "electron-builder --dir",
     "predist": "node scripts/sync-version-html.js && node scripts/prepare-dist.js && node scripts/generate-icon.js",

@@ -37,7 +37,7 @@ const updateToastMessage = document.getElementById('update-toast-message');
 const btnUpdateToastRetry = document.getElementById('btn-update-toast-retry');
 const btnUpdateToastDismiss = document.getElementById('btn-update-toast-dismiss');
 const btnPendingUpdateRestart = document.getElementById('btn-pending-update-restart');
-const DEFAULT_APP_VERSION = '0.1.0';
+const DEFAULT_APP_VERSION = '0.1.10';
 let appVersion = DEFAULT_APP_VERSION;
 let updateInProgress = false;
 let pendingUpdateVersion = null;
@@ -68,7 +68,6 @@ let playStateTimer = null;
 let launchPending = false;
 let currentPlayState = 'idle';
 let fivemOpenedDuringConnect = false;
-let fivemRunningAtLaunchStart = false;
 let lastServerOnlineState = null;
 let hasDisplayedServerStatus = false;
 let serverStatusRequestId = 0;
@@ -755,24 +754,15 @@ async function refreshPlayState() {
     }
 
     if (launchPending) {
-      if (playState.running && !fivemRunningAtLaunchStart) {
+      if (playState.running) {
         fivemOpenedDuringConnect = true;
-      }
-      if (fivemRunningAtLaunchStart) {
-        launchPending = false;
-        fivemRunningAtLaunchStart = false;
-        fivemOpenedDuringConnect = false;
-        updateStartButton(playState.inGame ? 'running' : 'idle');
-        if (!playState.inGame) {
-          refreshServerStatus();
-        }
-        return;
       }
 
       if (fivemOpenedDuringConnect && !playState.running) {
         launchPending = false;
         fivemOpenedDuringConnect = false;
         updateStartButton('idle');
+        showLaunchError('FiveM se cerró antes de conectar. Inténtalo de nuevo.');
         refreshServerStatus();
         return;
       }
@@ -812,7 +802,6 @@ function stopPlayStatePolling() {
 
   launchPending = false;
   fivemOpenedDuringConnect = false;
-  fivemRunningAtLaunchStart = false;
   currentPlayState = 'idle';
   updateStartButton('idle');
   updateServerCardConnectingAnimation(false);
@@ -1289,9 +1278,8 @@ btnStartDalton.addEventListener('click', async () => {
     return;
   }
 
-  fivemRunningAtLaunchStart = playStateBefore.running;
   launchPending = true;
-  fivemOpenedDuringConnect = false;
+  fivemOpenedDuringConnect = playStateBefore.running;
   updateStartButton('connecting');
 
   const result = await window.dalton.startDaltonLife();

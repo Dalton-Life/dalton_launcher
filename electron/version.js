@@ -1,4 +1,4 @@
-const DEFAULT_VERSION = '0.1.0';
+const DEFAULT_VERSION = '0.1.10';
 
 function getAppVersion(app) {
   return app.getVersion() || DEFAULT_VERSION;
