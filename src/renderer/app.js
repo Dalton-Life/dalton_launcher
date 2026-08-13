@@ -26,6 +26,7 @@ const serverStatusDot = document.getElementById('server-status-dot');
 const serverStatusText = document.getElementById('server-status-text');
 const serverPlayers = document.getElementById('server-players');
 const serverPing = document.getElementById('server-ping');
+const serverHostname = document.getElementById('server-hostname');
 const serverCard = document.getElementById('server-card');
 const notificationsList = document.getElementById('notifications-list');
 const notificationBadge = document.getElementById('notification-badge');
@@ -39,6 +40,7 @@ let playStateTimer = null;
 let launchPending = false;
 let currentPlayState = 'idle';
 let fivemOpenedDuringConnect = false;
+let fivemRunningAtLaunchStart = false;
 let lastServerOnlineState = null;
 let hasDisplayedServerStatus = false;
 let serverStatusRequestId = 0;
@@ -287,6 +289,7 @@ function applyServerStatus(status) {
     serverCard.classList.remove('server-card--online-flash');
     serverStatusDot.className = 'server-card__dot server-card__dot--offline';
     serverStatusText.textContent = 'OFFLINE';
+    serverHostname.textContent = 'Dalton Life';
     serverPlayers.textContent = status.error ? status.error.toUpperCase() : 'JUGADORES: —';
     updateServerPing(null);
 
@@ -303,6 +306,7 @@ function applyServerStatus(status) {
 
   serverStatusDot.className = 'server-card__dot server-card__dot--online';
   serverStatusText.textContent = 'EN LÍNEA';
+  serverHostname.textContent = String(status.hostname || 'Dalton Life').trim() || 'Dalton Life';
   serverPlayers.textContent = `JUGADORES: ${status.clients} / ${status.maxClients || '—'}`;
   updateServerPing(status.ping);
 
@@ -460,8 +464,18 @@ async function refreshPlayState() {
     }
 
     if (launchPending) {
-      if (playState.running) {
+      if (playState.running && !fivemRunningAtLaunchStart) {
         fivemOpenedDuringConnect = true;
+      }
+      if (fivemRunningAtLaunchStart) {
+        launchPending = false;
+        fivemRunningAtLaunchStart = false;
+        fivemOpenedDuringConnect = false;
+        updateStartButton(playState.inGame ? 'running' : 'idle');
+        if (!playState.inGame) {
+          refreshServerStatus();
+        }
+        return;
       }
 
       if (fivemOpenedDuringConnect && !playState.running) {
@@ -507,6 +521,7 @@ function stopPlayStatePolling() {
 
   launchPending = false;
   fivemOpenedDuringConnect = false;
+  fivemRunningAtLaunchStart = false;
   currentPlayState = 'idle';
   updateStartButton('idle');
   updateServerCardConnectingAnimation(false);
@@ -660,6 +675,23 @@ async function runInstallProgress(message, steps = 5) {
   );
 }
 
+function setInstallOverlayProgress(message, percent) {
+  const safePercent = Math.min(100, Math.max(0, Number(percent) || 0));
+
+  installOverlay.classList.remove('hidden');
+  installOverlay.setAttribute('aria-hidden', 'false');
+  installMessage.textContent = message;
+  installProgressBar.style.width = `${safePercent}%`;
+  installProgressValue.textContent = `${safePercent}%`;
+}
+
+function hideInstallOverlay() {
+  installOverlay.classList.add('hidden');
+  installOverlay.setAttribute('aria-hidden', 'true');
+  installProgressBar.style.width = '0%';
+  installProgressValue.textContent = '0%';
+}
+
 async function saveConfigPartial(partial) {
   config = await window.dalton.setConfig(partial);
   applyConfigToUi();
@@ -760,31 +792,42 @@ btnInstallLauncher.addEventListener('click', async () => {
 
   const createDesktopShortcut = document.getElementById('create-desktop-shortcut').checked;
 
-  await runInstallProgress('Creando carpetas del launcher...', 3);
-  await runInstallProgress('Configurando Dalton Launcher...', 4);
+  setInstallOverlayProgress('Preparando instalación...', 10);
 
-  if (createDesktopShortcut) {
-    await runInstallProgress('Creando acceso directo en el escritorio...', 2);
+  try {
+    setInstallOverlayProgress('Creando carpetas del launcher...', 40);
+
+    const result = await window.dalton.installLauncher({
+      installPath: config.launcherInstallPath,
+      createDesktopShortcut
+    });
+
+    if (!result.ok) {
+      hideInstallOverlay();
+      setInstallStatus(result.message || 'ERROR DE INSTALACIÓN', config.launcherInstallPath);
+      return;
+    }
+
+    setInstallOverlayProgress(
+      createDesktopShortcut ? 'Acceso directo creado. Finalizando...' : 'Instalación completada.',
+      100
+    );
+
+    await sleep(250);
+    hideInstallOverlay();
+
+    config = await window.dalton.getConfig();
+    config.appVersion = await window.dalton.getVersion();
+    applyConfigToUi();
+    syncDiscordPresence('idle');
+    await transitionInstallToHome();
+    await loadNotifications();
+    startServerStatusPolling();
+    startPlayStatePolling();
+  } catch (error) {
+    hideInstallOverlay();
+    setInstallStatus(error.message || 'ERROR DE INSTALACIÓN', config.launcherInstallPath);
   }
-
-  const result = await window.dalton.installLauncher({
-    installPath: config.launcherInstallPath,
-    createDesktopShortcut
-  });
-
-  if (!result.ok) {
-    setInstallStatus(result.message || 'ERROR DE INSTALACIÓN', config.launcherInstallPath);
-    return;
-  }
-
-  config = await window.dalton.getConfig();
-  config.appVersion = await window.dalton.getVersion();
-  applyConfigToUi();
-  syncDiscordPresence('idle');
-  await transitionInstallToHome();
-  await loadNotifications();
-  startServerStatusPolling();
-  startPlayStatePolling();
 });
 
 btnStartDalton.addEventListener('click', async () => {
@@ -792,6 +835,14 @@ btnStartDalton.addEventListener('click', async () => {
     return;
   }
 
+  const playStateBefore = await window.dalton.getFiveMPlayState();
+
+  if (playStateBefore.inGame) {
+    updateStartButton('running');
+    return;
+  }
+
+  fivemRunningAtLaunchStart = playStateBefore.running;
   launchPending = true;
   fivemOpenedDuringConnect = false;
   updateStartButton('connecting');

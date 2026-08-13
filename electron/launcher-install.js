@@ -144,7 +144,7 @@ function removeDesktopShortcut(app) {
   }
 }
 
-function installLauncher(app, config, targetPath, options = {}) {
+function installLauncher(app, _config, targetPath, options = {}) {
   const installRoot = resolveInstallRoot(targetPath, app);
   const validation = validateInstallRoot(installRoot, app);
 
@@ -170,15 +170,6 @@ function installLauncher(app, config, targetPath, options = {}) {
     JSON.stringify(manifest, null, 2),
     'utf8'
   );
-
-  if (config?.serverIp?.trim()) {
-    try {
-      const { writeConnectShortcut } = require('./fivem-launch');
-      writeConnectShortcut(validation.installRoot, config.serverIp, config.serverPort);
-    } catch {
-      // ignore shortcut sync errors
-    }
-  }
 
   let shortcutResult = null;
 

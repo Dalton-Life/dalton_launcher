@@ -49,17 +49,55 @@ function getFiveMPlayState() {
   };
 }
 
-function buildConnectUrl(serverIp, serverPort = DEFAULT_PORT) {
-  const ip = String(serverIp || '').trim();
-  const port = Number(serverPort) || DEFAULT_PORT;
+function normalizeServerPort(serverPort) {
+  const port = Number(serverPort);
 
-  if (!ip) {
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error('Puerto del servidor inválido.');
+  }
+
+  return port;
+}
+
+function validateServerHost(serverIp) {
+  const host = String(serverIp || '').trim();
+
+  if (!host) {
     throw new Error('Configura la IP del servidor en ajustes.');
   }
 
-  if (!/^[\d.a-zA-Z:-]+$/.test(ip)) {
-    throw new Error('IP del servidor inválida.');
+  if (host.toLowerCase() === 'localhost') {
+    return '127.0.0.1';
   }
+
+  const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+
+  if (ipv4Pattern.test(host)) {
+    const isValid = host.split('.').every((octet) => {
+      const value = Number(octet);
+      return value >= 0 && value <= 255;
+    });
+
+    if (!isValid) {
+      throw new Error('IP del servidor inválida.');
+    }
+
+    return host;
+  }
+
+  const hostnamePattern =
+    /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+  if (hostnamePattern.test(host)) {
+    return host;
+  }
+
+  throw new Error('IP del servidor inválida.');
+}
+
+function buildConnectUrl(serverIp, serverPort = DEFAULT_PORT) {
+  const ip = validateServerHost(serverIp);
+  const port = normalizeServerPort(serverPort);
 
   return `fivem://connect/${ip}:${port}`;
 }
