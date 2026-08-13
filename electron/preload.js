@@ -18,6 +18,16 @@ contextBridge.exposeInMainWorld('dalton', {
   setDiscordPresence: (state) => ipcRenderer.invoke('discord:set-presence', state),
   syncDiscordPresence: (state) => ipcRenderer.invoke('discord:sync', state),
   openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),
+  checkForUpdates: () => ipcRenderer.invoke('updater:check'),
+  installUpdate: () => ipcRenderer.invoke('updater:install'),
+  onUpdaterEvent: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on('updater:event', listener);
+
+    return () => {
+      ipcRenderer.removeListener('updater:event', listener);
+    };
+  },
   minimizeWindow: () => ipcRenderer.send('window:minimize'),
   closeWindow: () => ipcRenderer.send('window:close')
 });

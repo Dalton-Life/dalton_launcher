@@ -20,6 +20,13 @@ const {
 } = require('./discord-presence');
 const { loadEnv, getServerEnv } = require('./env');
 const { parseAllowedExternalUrl } = require('./safe-url');
+const { getAppVersion } = require('./version');
+const {
+  initAutoUpdater,
+  checkForUpdates,
+  scheduleUpdateCheck,
+  quitAndInstall
+} = require('./auto-updater');
 
 const projectRoot = path.join(__dirname, '..');
 
@@ -171,6 +178,8 @@ app.whenReady().then(async () => {
   const startupConfig = readNormalizedConfig();
 
   createWindow();
+  initAutoUpdater(mainWindow);
+  scheduleUpdateCheck(3000);
 
   if (startupConfig.launcherInstalled && startupConfig.serverIp?.trim() && startupConfig.launcherInstallPath) {
     try {
@@ -200,7 +209,14 @@ app.on('activate', () => {
   }
 });
 
-ipcMain.handle('app:get-version', () => app.getVersion());
+ipcMain.handle('app:get-version', () => getAppVersion(app));
+
+ipcMain.handle('updater:check', () => checkForUpdates());
+
+ipcMain.handle('updater:install', () => {
+  quitAndInstall();
+  return { ok: true };
+});
 
 ipcMain.handle('config:get', () => ({
   ...readNormalizedConfig(),

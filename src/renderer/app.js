@@ -17,6 +17,12 @@ const installStatusLabel = document.getElementById('install-status-label');
 const installStatusPath = document.getElementById('install-status-path');
 const footerVersion = document.getElementById('footer-version');
 const installFooterVersion = document.getElementById('install-footer-version');
+const progressBar = document.getElementById('progress-bar');
+const progressValue = document.getElementById('progress-value');
+const DEFAULT_APP_VERSION = '0.1';
+let appVersion = DEFAULT_APP_VERSION;
+let updateInProgress = false;
+let updateRestartTimer = null;
 const launcherInstallPathInput = document.getElementById('launcher-install-path');
 const btnInstallLauncher = document.getElementById('btn-install-launcher');
 const btnStartDalton = document.getElementById('btn-start-dalton');
@@ -47,6 +53,17 @@ let notificationItems = [];
 const SERVER_STATUS_MAX_ATTEMPTS = 3;
 const SERVER_STATUS_INTERVAL_MS = 15000;
 const PLAY_STATE_INTERVAL_MS = 2000;
+
+function formatDisplayVersion(version) {
+  const raw = String(version || DEFAULT_APP_VERSION).trim().replace(/^v/i, '');
+  const match = raw.match(/^(\d+)\.(\d+)/);
+
+  return match ? `${match[1]}.${match[2]}` : raw;
+}
+
+function formatVersionLabel(version = appVersion) {
+  return `VERSION v${formatDisplayVersion(version)} — EARLY ACCESS`;
+}
 
 function clampVolumePercent(value, fallback = 22) {
   if (value === '' || value === null || value === undefined) {
@@ -600,8 +617,9 @@ async function loadNotifications() {
 }
 
 function applyConfigToUi() {
-  footerVersion.textContent = `VERSION v${config.appVersion} — EARLY ACCESS`;
-  installFooterVersion.textContent = footerVersion.textContent;
+  const versionLabel = formatVersionLabel(appVersion);
+  footerVersion.textContent = versionLabel;
+  installFooterVersion.textContent = versionLabel;
   launcherInstallPathInput.value = config.launcherInstallPath;
   document.getElementById('mute-music').checked = config.muteBackgroundMusic;
   document.getElementById('mute-sfx').checked = config.muteButtonSounds;
@@ -618,6 +636,10 @@ function applyConfigToUi() {
 }
 
 function showBusyOverlay({ title, message, hint = 'No cierres el launcher.' }) {
+  if (updateInProgress) {
+    return;
+  }
+
   updateTitle.textContent = title;
   updateTitle.setAttribute('data-text', title);
   updateMessage.textContent = message;
@@ -630,6 +652,10 @@ function showBusyOverlay({ title, message, hint = 'No cierres el launcher.' }) {
 }
 
 function hideBusyOverlay() {
+  if (updateInProgress) {
+    return;
+  }
+
   updateOverlay.classList.add('hidden');
   updateOverlay.setAttribute('aria-hidden', 'true');
   updateSpinner.classList.add('hidden');
@@ -638,6 +664,124 @@ function hideBusyOverlay() {
   updateTitle.textContent = 'ACTUALIZANDO';
   updateTitle.setAttribute('data-text', 'ACTUALIZANDO');
   updateHint.textContent = 'No cierres el launcher.';
+}
+
+function clearUpdateRestartTimer() {
+  if (updateRestartTimer) {
+    clearTimeout(updateRestartTimer);
+    updateRestartTimer = null;
+  }
+}
+
+function showUpdateOverlay({ title, message, hint = 'No cierres el launcher.', mode = 'progress' }) {
+  updateInProgress = true;
+  updateTitle.textContent = title;
+  updateTitle.setAttribute('data-text', title);
+  updateMessage.textContent = message;
+  updateHint.textContent = hint;
+
+  if (mode === 'spinner') {
+    updateProgressRow.classList.add('hidden');
+    updateSpinner.classList.remove('hidden');
+    updateSpinner.setAttribute('aria-hidden', 'false');
+  } else {
+    updateSpinner.classList.add('hidden');
+    updateSpinner.setAttribute('aria-hidden', 'true');
+    updateProgressRow.classList.remove('hidden');
+  }
+
+  updateOverlay.classList.remove('hidden');
+  updateOverlay.setAttribute('aria-hidden', 'false');
+}
+
+function hideUpdateOverlay() {
+  updateInProgress = false;
+  clearUpdateRestartTimer();
+  updateOverlay.classList.add('hidden');
+  updateOverlay.setAttribute('aria-hidden', 'true');
+  updateSpinner.classList.add('hidden');
+  updateSpinner.setAttribute('aria-hidden', 'true');
+  updateProgressRow.classList.remove('hidden');
+  updateTitle.textContent = 'ACTUALIZANDO';
+  updateTitle.setAttribute('data-text', 'ACTUALIZANDO');
+  updateMessage.textContent = 'Descargando componentes...';
+  updateHint.textContent = 'No cierres el launcher.';
+  progressBar.style.width = '0%';
+  progressValue.textContent = '0%';
+}
+
+function setUpdateOverlayProgress(percent) {
+  const safePercent = Math.min(100, Math.max(0, Number(percent) || 0));
+
+  progressBar.style.width = `${safePercent}%`;
+  progressValue.textContent = `${Math.round(safePercent)}%`;
+}
+
+function scheduleUpdateRestart(version, seconds = 5) {
+  clearUpdateRestartTimer();
+
+  let remaining = seconds;
+
+  const tick = () => {
+    updateHint.textContent = `Reiniciando en ${remaining}s para aplicar v${formatDisplayVersion(version)}...`;
+
+    if (remaining <= 0) {
+      window.dalton.installUpdate();
+      return;
+    }
+
+    remaining -= 1;
+    updateRestartTimer = setTimeout(tick, 1000);
+  };
+
+  tick();
+}
+
+function setupUpdaterListeners() {
+  if (!window.dalton.onUpdaterEvent) {
+    return () => {};
+  }
+
+  return window.dalton.onUpdaterEvent((event) => {
+    switch (event.type) {
+      case 'checking':
+        showUpdateOverlay({
+          title: 'BUSCANDO ACTUALIZACIONES',
+          message: 'Comprobando si hay una nueva versión...',
+          mode: 'spinner'
+        });
+        break;
+      case 'available':
+        showUpdateOverlay({
+          title: 'ACTUALIZANDO',
+          message: `Descargando v${formatDisplayVersion(event.version)}...`,
+          mode: 'progress'
+        });
+        setUpdateOverlayProgress(0);
+        break;
+      case 'progress':
+        setUpdateOverlayProgress(event.percent);
+        break;
+      case 'downloaded':
+        setUpdateOverlayProgress(100);
+        showUpdateOverlay({
+          title: 'LISTO PARA REINICIAR',
+          message: `La versión v${formatDisplayVersion(event.version)} está lista.`,
+          mode: 'progress',
+          hint: 'Reiniciando en 5s...'
+        });
+        scheduleUpdateRestart(event.version, 5);
+        break;
+      case 'not-available':
+        hideUpdateOverlay();
+        break;
+      case 'error':
+        hideUpdateOverlay();
+        break;
+      default:
+        break;
+    }
+  });
 }
 
 function setInstallOverlayProgress(message, percent) {
@@ -663,9 +807,15 @@ async function saveConfigPartial(partial) {
 }
 
 async function bootstrap() {
-  const version = await window.dalton.getVersion();
+  setupUpdaterListeners();
+
+  try {
+    appVersion = formatDisplayVersion(await window.dalton.getVersion());
+  } catch {
+    appVersion = DEFAULT_APP_VERSION;
+  }
+
   config = await window.dalton.getConfig();
-  config.appVersion = version;
   applyConfigToUi();
 
   window.daltonSounds.init(getAudioSettings());
@@ -789,7 +939,11 @@ btnInstallLauncher.addEventListener('click', async () => {
     hideInstallOverlay();
 
     config = await window.dalton.getConfig();
-    config.appVersion = await window.dalton.getVersion();
+    try {
+      appVersion = formatDisplayVersion(await window.dalton.getVersion());
+    } catch {
+      appVersion = DEFAULT_APP_VERSION;
+    }
     applyConfigToUi();
     syncDiscordPresence('idle');
     await transitionInstallToHome();
@@ -845,6 +999,10 @@ serverCard.addEventListener('animationend', (event) => {
 
 document.getElementById('btn-open-fivem-site').addEventListener('click', () => {
   window.dalton.openExternal('https://fivem.net/');
+});
+
+document.getElementById('btn-check-updates')?.addEventListener('click', async () => {
+  await window.dalton.checkForUpdates();
 });
 
 document.getElementById('btn-clear-fivem-cache').addEventListener('click', async () => {
