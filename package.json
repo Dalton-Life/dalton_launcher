@@ -45,7 +45,6 @@
         "nsis"
       ],
       "icon": "assets/icon.ico",
-      "publisherName": "Dalton Life",
       "signAndEditExecutable": false,
       "verifyUpdateCodeSignature": false
     },

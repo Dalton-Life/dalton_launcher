@@ -41,6 +41,13 @@ function formatUpdaterError(error) {
     return 'No se pudo acceder al release en GitHub.';
   }
 
+  if (
+    /not signed by the application owner/i.test(message) ||
+    code === 'ERR_UPDATER_INVALID_SIGNATURE'
+  ) {
+    return 'Esta versión no puede actualizarse sola. Descarga e instala manualmente el .exe desde GitHub Releases (v0.1.8 o superior). Las siguientes actualizaciones serán automáticas.';
+  }
+
   if (message.length > 160 || message.includes('statusCode') || message.includes('"headers"')) {
     if (/ENOTFOUND|ETIMEDOUT|ECONNREFUSED|network|fetch failed/i.test(message)) {
       return 'Sin conexión. Comprueba tu internet e inténtalo de nuevo.';
