@@ -1,5 +1,5 @@
 const http = require('http');
-const { DEFAULT_PORT } = require('./fivem-launch');
+const { DEFAULT_PORT, SERVER_NOT_CONFIGURED_MESSAGE } = require('./fivem-launch');
 
 const REQUEST_TIMEOUT_MS = 5000;
 const MAX_RESPONSE_BYTES = 1024 * 1024;
@@ -8,7 +8,7 @@ function normalizeServerHost(serverIp) {
   const host = String(serverIp || '').trim().toLowerCase();
 
   if (!host) {
-    throw new Error('Configura la IP del servidor en ajustes.');
+    throw new Error(SERVER_NOT_CONFIGURED_MESSAGE);
   }
 
   if (host === 'localhost') {

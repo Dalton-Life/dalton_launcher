@@ -393,7 +393,26 @@ function transitionInstallToHome() {
   });
 }
 
+function closeSidePanels() {
+  toggleSettings(false);
+  toggleNotifications(false);
+}
+
+function isBlockingOverlayActive() {
+  if (updateInProgress) {
+    return true;
+  }
+
+  const isVisible = (element) => element && !element.classList.contains('hidden');
+
+  return isVisible(updateOverlay) || isVisible(installOverlay);
+}
+
 function toggleSettings(open) {
+  if (open && isBlockingOverlayActive()) {
+    return;
+  }
+
   if (open) {
     toggleNotifications(false);
   }
@@ -403,6 +422,10 @@ function toggleSettings(open) {
 }
 
 function toggleNotifications(open) {
+  if (open && isBlockingOverlayActive()) {
+    return;
+  }
+
   if (open) {
     toggleSettings(false);
   }
@@ -620,7 +643,7 @@ async function refreshServerStatusNow() {
     hasDisplayedServerStatus = true;
     lastServerOnlineState = false;
     serverStatusDot.className = 'server-card__dot server-card__dot--offline';
-    serverStatusText.textContent = 'Sin configurar';
+    serverStatusText.textContent = 'Servidor no configurado';
     serverPlayers.textContent = '—';
     updateServerPing(null);
 
@@ -879,6 +902,7 @@ function showBusyOverlay({ title, message, hint = 'No cierres el launcher.' }) {
     return;
   }
 
+  closeSidePanels();
   updateTitle.textContent = title;
   updateTitle.setAttribute('data-text', title);
   updateMessage.textContent = message;
@@ -907,6 +931,7 @@ function hideBusyOverlay() {
 
 function showUpdateOverlay({ title, message, hint = 'No cierres el launcher.', mode = 'progress' }) {
   updateInProgress = true;
+  closeSidePanels();
   updateTitle.textContent = title;
   updateTitle.setAttribute('data-text', title);
   updateMessage.textContent = message;
@@ -1063,6 +1088,7 @@ function setupUpdaterListeners() {
 function setInstallOverlayProgress(message, percent) {
   const safePercent = Math.min(100, Math.max(0, Number(percent) || 0));
 
+  closeSidePanels();
   installOverlay.classList.remove('hidden');
   installOverlay.setAttribute('aria-hidden', 'false');
   installMessage.textContent = message;
@@ -1198,6 +1224,11 @@ document.getElementById('mute-sfx').addEventListener('change', async (event) => 
 });
 
 btnInstallLauncher.addEventListener('click', async () => {
+  if (btnInstallLauncher.disabled) {
+    return;
+  }
+
+  btnInstallLauncher.disabled = true;
   setInstallStatus('INSTALANDO...', config.launcherInstallPath);
 
   const createDesktopShortcut = document.getElementById('create-desktop-shortcut').checked;
@@ -1241,6 +1272,8 @@ btnInstallLauncher.addEventListener('click', async () => {
   } catch (error) {
     hideInstallOverlay();
     setInstallStatus(error.message || 'ERROR DE INSTALACIÓN', config.launcherInstallPath);
+  } finally {
+    btnInstallLauncher.disabled = false;
   }
 });
 

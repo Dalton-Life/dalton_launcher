@@ -4,6 +4,8 @@ const { execSync, spawn } = require('child_process');
 
 const DEFAULT_PORT = 30120;
 const CONNECT_SHORTCUT_NAME = 'Dalton Life.url';
+const SERVER_NOT_CONFIGURED_MESSAGE =
+  'Servidor no configurado en esta versión del launcher. Contacta al equipo de Dalton.';
 
 function getFiveMExecutablePath() {
   const localAppData = process.env.LOCALAPPDATA;
@@ -63,7 +65,7 @@ function validateServerHost(serverIp) {
   const host = String(serverIp || '').trim();
 
   if (!host) {
-    throw new Error('Configura la IP del servidor en ajustes.');
+    throw new Error(SERVER_NOT_CONFIGURED_MESSAGE);
   }
 
   if (host.toLowerCase() === 'localhost') {
@@ -162,6 +164,7 @@ async function launchDaltonLife(serverIp, serverPort, options = {}) {
 module.exports = {
   CONNECT_SHORTCUT_NAME,
   DEFAULT_PORT,
+  SERVER_NOT_CONFIGURED_MESSAGE,
   buildConnectUrl,
   getConnectShortcutPath,
   getFiveMExecutablePath,

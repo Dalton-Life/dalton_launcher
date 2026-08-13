@@ -1175,7 +1175,7 @@ input {
 .update-overlay {
   position: absolute;
   inset: 0;
-  z-index: 20;
+  z-index: 40;
   display: grid;
   place-items: center;
   background: rgba(28, 28, 28, 0.78);

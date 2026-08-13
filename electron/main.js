@@ -8,7 +8,7 @@ const {
   isLauncherInstalled,
   installLauncher
 } = require('./launcher-install');
-const { DEFAULT_PORT, isFiveMInstalled, launchDaltonLife, getFiveMPlayState } = require('./fivem-launch');
+const { DEFAULT_PORT, isFiveMInstalled, launchDaltonLife, getFiveMPlayState, SERVER_NOT_CONFIGURED_MESSAGE } = require('./fivem-launch');
 const { getServerStatus } = require('./fivem-server-api');
 const { getNews } = require('./news');
 const { clearFiveMCache } = require('./fivem-cache');
@@ -308,7 +308,7 @@ ipcMain.handle('launcher:start-dalton-life', async () => {
   if (!config.serverIp?.trim()) {
     return {
       ok: false,
-      message: 'Configura la IP del servidor en ajustes.'
+      message: SERVER_NOT_CONFIGURED_MESSAGE
     };
   }
 
