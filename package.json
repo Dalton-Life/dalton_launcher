@@ -1,6 +1,6 @@
 {
   "name": "dalton-launcher",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Launcher e instalador para servidor FiveM — Dalton",
   "main": "electron/main.js",
   "author": "Dalton",
