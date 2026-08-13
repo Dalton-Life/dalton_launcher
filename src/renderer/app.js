@@ -581,8 +581,6 @@ function applyConfigToUi() {
   launcherInstallPathInput.value = config.launcherInstallPath;
   document.getElementById('mute-music').checked = config.muteBackgroundMusic;
   document.getElementById('mute-sfx').checked = config.muteButtonSounds;
-  document.getElementById('btn-uninstall-launcher').classList.toggle('hidden', Boolean(config.packaged));
-  document.getElementById('packaged-uninstall-hint').classList.toggle('hidden', !config.packaged);
   updateMusicVolumeUi(getBackgroundMusicVolume());
   setInstallStatus('LISTO PARA INSTALAR', config.launcherInstallPath);
 
@@ -827,16 +825,6 @@ serverCard.addEventListener('animationend', (event) => {
 
 document.getElementById('btn-open-fivem-site').addEventListener('click', () => {
   window.dalton.openExternal('https://fivem.net/');
-});
-
-document.getElementById('btn-uninstall-launcher').addEventListener('click', async () => {
-  await window.dalton.uninstallLauncher();
-  config = await window.dalton.getConfig();
-  config.appVersion = await window.dalton.getVersion();
-  applyConfigToUi();
-  showView(installView);
-  stopServerStatusPolling();
-  stopPlayStatePolling();
 });
 
 document.getElementById('btn-clear-fivem-cache').addEventListener('click', async () => {
