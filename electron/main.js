@@ -71,6 +71,12 @@ function normalizeMusicVolume(value, fallback = 22) {
   return Math.min(100, Math.max(0, Math.round(parsed)));
 }
 
+function getFiveMOptions(config = readNormalizedConfig()) {
+  const fivemAppPath = String(config.fivemAppPath || '').trim();
+
+  return fivemAppPath ? { fivemAppPath } : {};
+}
+
 function normalizeConfig(config) {
   let launcherInstallPath = resolveInstallRoot(
     config.launcherInstallPath || getDefaultLauncherInstallPath(app),
@@ -85,11 +91,13 @@ function normalizeConfig(config) {
   }
 
   const { serverIp, serverPort } = getServerEnv();
+  const fivemAppPath = String(config.fivemAppPath || '').trim();
 
   return {
     ...config,
     launcherInstallPath,
     installPath: config.installPath || path.join(launcherInstallPath, 'server'),
+    fivemAppPath: fivemAppPath || undefined,
     serverIp,
     serverPort,
     muteBackgroundMusic: Boolean(config.muteBackgroundMusic),
@@ -310,7 +318,8 @@ ipcMain.handle('launcher:start-dalton-life', async () => {
 
   try {
     return await launchDaltonLife(config.serverIp, config.serverPort, {
-      installRoot: config.launcherInstallPath
+      installRoot: config.launcherInstallPath,
+      ...getFiveMOptions(config)
     });
   } catch (error) {
     return {
@@ -320,7 +329,7 @@ ipcMain.handle('launcher:start-dalton-life', async () => {
   }
 });
 
-ipcMain.handle('fivem:is-installed', () => isFiveMInstalled());
+ipcMain.handle('fivem:is-installed', () => isFiveMInstalled(getFiveMOptions()));
 
 ipcMain.handle('fivem:get-play-state', () => getFiveMPlayState());
 
@@ -340,7 +349,7 @@ ipcMain.handle('fivem:confirm-clear-cache', async () => {
   return confirm.response === 1;
 });
 
-ipcMain.handle('fivem:clear-cache', async () => clearFiveMCache());
+ipcMain.handle('fivem:clear-cache', async () => clearFiveMCache(getFiveMOptions()));
 
 ipcMain.handle('fivem:show-cache-result', async (_event, result) => {
   if (!result?.message) {

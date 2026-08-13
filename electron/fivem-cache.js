@@ -1,18 +1,7 @@
 const fsp = require('fs/promises');
 const path = require('path');
-const { getFiveMPlayState } = require('./fivem-launch');
-
+const { getFiveMDataPath, getFiveMPlayState } = require('./fivem-launch');
 const CACHE_DIRS = ['server-cache-priv', 'server-cache', 'cache'];
-
-function getFiveMDataPath() {
-  const localAppData = process.env.LOCALAPPDATA;
-
-  if (!localAppData) {
-    return null;
-  }
-
-  return path.join(localAppData, 'FiveM', 'FiveM.app', 'data');
-}
 
 async function removeDirIfExists(dirPath) {
   const name = path.basename(dirPath);
@@ -33,8 +22,8 @@ function yieldToEventLoop() {
   });
 }
 
-async function clearFiveMCache() {
-  const dataPath = getFiveMDataPath();
+async function clearFiveMCache(options = {}) {
+  const dataPath = getFiveMDataPath(options);
 
   if (!dataPath) {
     return {
