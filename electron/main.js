@@ -13,10 +13,8 @@ const { getServerStatus } = require('./fivem-server-api');
 const { getNews } = require('./news');
 const { clearFiveMCache } = require('./fivem-cache');
 const {
-  setDiscordPresence,
   destroyDiscordPresence,
-  syncDiscordPresence,
-  isDiscordPresenceEnabled
+  syncDiscordPresence
 } = require('./discord-presence');
 const { loadEnv, getServerEnv } = require('./env');
 const { parseAllowedExternalUrl } = require('./safe-url');
@@ -120,20 +118,30 @@ function readNormalizedConfig() {
   return normalizeConfig(readConfig());
 }
 
+let configWriteQueue = Promise.resolve();
+
+function enqueueConfigWrite(work) {
+  const result = configWriteQueue.then(work, work);
+  configWriteQueue = result.catch(() => {});
+  return result;
+}
+
 function writeNormalizedConfig(partial) {
-  const next = normalizeConfig({ ...readConfig(), ...partial });
-  writeConfig(next);
+  return enqueueConfigWrite(() => {
+    const next = normalizeConfig({ ...readConfig(), ...partial });
+    writeConfig(next);
 
-  if (next.launcherInstalled && next.serverIp?.trim() && next.launcherInstallPath) {
-    try {
-      const { writeConnectShortcut } = require('./fivem-launch');
-      writeConnectShortcut(next.launcherInstallPath, next.serverIp, next.serverPort);
-    } catch {
-      // ignore shortcut sync errors
+    if (next.launcherInstalled && next.serverIp?.trim() && next.launcherInstallPath) {
+      try {
+        const { writeConnectShortcut } = require('./fivem-launch');
+        writeConnectShortcut(next.launcherInstallPath, next.serverIp, next.serverPort);
+      } catch {
+        // ignore shortcut sync errors
+      }
     }
-  }
 
-  return next;
+    return next;
+  });
 }
 
 function createWindow() {
@@ -227,7 +235,7 @@ ipcMain.handle('config:get', () => ({
   packaged: app.isPackaged
 }));
 
-ipcMain.handle('config:set', (_event, partial) => writeNormalizedConfig(partial));
+ipcMain.handle('config:set', async (_event, partial) => writeNormalizedConfig(partial));
 
 ipcMain.handle('dialog:select-folder', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
@@ -372,14 +380,6 @@ ipcMain.handle('fivem:get-server-status', async () => {
 });
 
 ipcMain.handle('news:get', () => getNews(projectRoot));
-
-ipcMain.handle('discord:set-presence', (_event, state) => {
-  if (!isDiscordPresenceEnabled()) {
-    return { ok: false };
-  }
-
-  return { ok: setDiscordPresence(state) };
-});
 
 ipcMain.handle('discord:sync', async (_event, state = 'idle') => {
   const ok = await syncDiscordPresence(state);

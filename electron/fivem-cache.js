@@ -65,6 +65,15 @@ async function clearFiveMCache() {
   const results = [];
 
   for (const dirName of CACHE_DIRS) {
+    const playState = getFiveMPlayState();
+
+    if (playState.running || playState.inGame) {
+      return {
+        ok: false,
+        message: 'Cierra FiveM completamente antes de borrar la caché.'
+      };
+    }
+
     const dirPath = path.join(dataPath, dirName);
 
     try {

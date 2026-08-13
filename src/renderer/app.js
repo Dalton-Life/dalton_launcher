@@ -47,6 +47,32 @@ let resolveStartupUpdateCheck = null;
 let toastActionHandler = null;
 const STARTUP_UPDATE_TIMEOUT_MS = 20000;
 const FIVEM_DOWNLOAD_URL = 'https://fivem.net/';
+const SOCIAL_LINKS = [
+  {
+    url: 'https://discord.gg/g2wYRtqphT',
+    title: 'Discord',
+    label: 'Discord',
+    icon: '../assets/discord-icon.svg'
+  },
+  {
+    url: 'https://www.tiktok.com/@daltonliferp',
+    title: 'TikTok',
+    label: 'TikTok',
+    icon: '../assets/tiktok-icon.svg'
+  },
+  {
+    url: 'https://www.instagram.com/daltonxlife/',
+    title: 'Instagram',
+    label: 'Instagram',
+    icon: '../assets/instagram-icon.svg'
+  },
+  {
+    url: 'https://store.daltonxlife.org/',
+    title: 'Página web',
+    label: 'Página web',
+    icon: '../assets/web-icon.svg'
+  }
+];
 const launcherInstallPathInput = document.getElementById('launcher-install-path');
 const btnInstallLauncher = document.getElementById('btn-install-launcher');
 const btnStartDalton = document.getElementById('btn-start-dalton');
@@ -73,8 +99,12 @@ let hasDisplayedServerStatus = false;
 let serverStatusRequestId = 0;
 let serverStatusInFlight = null;
 let notificationItems = [];
-const SERVER_STATUS_MAX_ATTEMPTS = 3;
+let consecutiveServerOfflineChecks = 0;
+let lastDiscordPresenceState = null;
+let fivemInstallWarningShown = false;
+const SERVER_STATUS_MAX_ATTEMPTS = 1;
 const SERVER_STATUS_INTERVAL_MS = 15000;
+const SERVER_STATUS_INTERVAL_OFFLINE_MS = 30000;
 const PLAY_STATE_INTERVAL_MS = 2000;
 const SPLASH_EXIT_TIMEOUT_MS = 1000;
 const SPLASH_DELAY_MS = 2700;
@@ -373,7 +403,65 @@ function refreshAudioSettings() {
 }
 
 function syncDiscordPresence(state = currentPlayState) {
+  if (state === lastDiscordPresenceState) {
+    return;
+  }
+
+  lastDiscordPresenceState = state;
   window.dalton?.syncDiscordPresence?.(state);
+}
+
+function renderSocialLinks() {
+  const markup = SOCIAL_LINKS.map(
+    (link) => `
+      <button
+        class="social-btn"
+        type="button"
+        data-social-url="${link.url}"
+        title="${link.title}"
+        aria-label="${link.label}"
+      >
+        <img src="${link.icon}" alt="" class="social-btn__icon" />
+      </button>
+    `
+  ).join('');
+
+  document.querySelectorAll('.social-links').forEach((container) => {
+    container.innerHTML = markup;
+  });
+}
+
+function setupSidePanelKeyboard() {
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') {
+      return;
+    }
+
+    if (settingsPanel.classList.contains('is-open')) {
+      toggleSettings(false);
+    }
+
+    if (notificationsPanel.classList.contains('is-open')) {
+      toggleNotifications(false);
+    }
+  });
+}
+
+async function checkFiveMInstalledOnHome() {
+  if (fivemInstallWarningShown || !window.dalton?.isFiveMInstalled) {
+    return;
+  }
+
+  try {
+    const installed = await window.dalton.isFiveMInstalled();
+
+    if (!installed) {
+      fivemInstallWarningShown = true;
+      showLaunchError('FiveM no está instalado. Instálalo desde fivem.net para poder jugar.');
+    }
+  } catch {
+    // ignore detection errors
+  }
 }
 
 function sleep(ms) {
@@ -604,6 +692,7 @@ function applyServerStatus(status) {
   lastServerOnlineState = Boolean(status.online);
 
   if (!status.online) {
+    consecutiveServerOfflineChecks += 1;
     serverCard.classList.remove('server-card--online-flash');
     serverStatusDot.className = 'server-card__dot server-card__dot--offline';
     serverStatusText.textContent = 'Offline';
@@ -617,6 +706,8 @@ function applyServerStatus(status) {
 
     return;
   }
+
+  consecutiveServerOfflineChecks = 0;
 
   if (wasOnline === false) {
     triggerServerOnlineAnimation();
@@ -720,15 +811,26 @@ function refreshServerStatus() {
   return serverStatusInFlight;
 }
 
+function getServerStatusIntervalMs() {
+  return consecutiveServerOfflineChecks >= 3
+    ? SERVER_STATUS_INTERVAL_OFFLINE_MS
+    : SERVER_STATUS_INTERVAL_MS;
+}
+
 function startServerStatusPolling() {
   stopServerStatusPolling();
-  refreshServerStatus();
-  serverStatusTimer = setInterval(refreshServerStatus, SERVER_STATUS_INTERVAL_MS);
+
+  const tick = async () => {
+    await refreshServerStatus();
+    serverStatusTimer = setTimeout(tick, getServerStatusIntervalMs());
+  };
+
+  tick();
 }
 
 function stopServerStatusPolling() {
   if (serverStatusTimer) {
-    clearInterval(serverStatusTimer);
+    clearTimeout(serverStatusTimer);
     serverStatusTimer = null;
   }
 }
@@ -1127,6 +1229,8 @@ async function saveConfigPartial(partial) {
 
 async function bootstrap() {
   setupUpdaterListeners();
+  renderSocialLinks();
+  setupSidePanelKeyboard();
 
   try {
     appVersion = formatDisplayVersion(await window.dalton.getVersion());
@@ -1146,6 +1250,7 @@ async function bootstrap() {
 
   if (config.launcherInstalled) {
     await transitionToHome();
+    await checkFiveMInstalledOnHome();
     void runStartupUpdateCheck();
     syncDiscordPresence('idle');
     startServerStatusPolling();
@@ -1283,6 +1388,7 @@ btnInstallLauncher.addEventListener('click', async () => {
     applyConfigToUi();
     syncDiscordPresence('idle');
     await transitionInstallToHome();
+    await checkFiveMInstalledOnHome();
     await loadNotifications();
     startServerStatusPolling();
     startPlayStatePolling();
@@ -1322,11 +1428,18 @@ btnStartDalton.addEventListener('click', async () => {
   await refreshPlayState();
 });
 
-document.querySelectorAll('[data-social-url]').forEach((button) => {
-  button.addEventListener('click', () => {
-    const url = button.getAttribute('data-social-url');
-    if (url) window.dalton.openExternal(url);
-  });
+document.addEventListener('click', (event) => {
+  const socialButton = event.target.closest('[data-social-url]');
+
+  if (!socialButton) {
+    return;
+  }
+
+  const url = socialButton.getAttribute('data-social-url');
+
+  if (url) {
+    window.dalton.openExternal(url);
+  }
 });
 
 serverCard.addEventListener('animationend', (event) => {

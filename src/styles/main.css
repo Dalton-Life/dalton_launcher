@@ -171,19 +171,8 @@ input {
   margin-bottom: 1rem;
 }
 
-.install-option {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
+.install-checkbox-option {
   margin-bottom: 1.25rem;
-  font-family: var(--AkrobatRegular), var(--font);
-  font-size: 0.85rem;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.install-option input[type='checkbox'] {
-  accent-color: var(--SecondaryColor);
 }
 
 #launcher-install-path {
@@ -194,6 +183,7 @@ input {
   background: var(--BackgroundLight);
   color: var(--text);
   font-family: var(--AkrobatRegular), var(--font);
+  user-select: text;
 }
 
 .install-main .field-label {
@@ -483,61 +473,9 @@ input {
   }
 }
 
-.news-block {
-  width: 100%;
-  padding: 1rem 1.05rem;
-  border: 1px solid var(--StrokeColor);
-  border-radius: 10px;
-  background: var(--BackgroundLight);
-}
-
 .notifications-list {
   display: grid;
   gap: 0.75rem;
-}
-
-.news-block__header {
-  margin-bottom: 0.75rem;
-  flex-shrink: 0;
-}
-
-.news-block__kicker {
-  font-family: var(--AkrobatSemiBold), var(--font);
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
-  color: var(--PrimaryColor);
-}
-
-.news-block__list {
-  display: grid;
-  gap: 0.75rem;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 0.15rem;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(124, 64, 160, 0.75) rgba(255, 255, 255, 0.04);
-}
-
-.news-block__list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.news-block__list::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 999px;
-}
-
-.news-block__list::-webkit-scrollbar-thumb {
-  background: rgba(124, 64, 160, 0.75);
-  border-radius: 999px;
-}
-
-.news-block__empty {
-  margin: 0;
-  font-family: var(--AkrobatRegular), var(--font);
-  font-size: 0.78rem;
-  color: var(--muted);
 }
 
 .news-item {
@@ -769,17 +707,6 @@ input {
   box-shadow: none;
 }
 
-.cta--ghost {
-  color: var(--PrimaryColor);
-  background: var(--BackgroundLight);
-  border: 1px solid var(--StrokeColor);
-}
-
-.cta--ghost:hover {
-  border-color: var(--SecondaryColor);
-  background: rgba(124, 64, 160, 0.18);
-}
-
 .status-line {
   margin-top: 1rem;
   display: grid;
@@ -788,10 +715,6 @@ input {
   font-size: 0.78rem;
   letter-spacing: 0.12em;
   color: var(--muted);
-}
-
-#status-label {
-  color: var(--GreenColor);
 }
 
 .home-footer {
@@ -1001,16 +924,6 @@ input {
   font-size: 0.72rem;
   color: var(--muted);
   line-height: 1.4;
-}
-
-#install-path {
-  width: 100%;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--BackgroundLight);
-  color: var(--text);
-  font-family: var(--AkrobatRegular), var(--font);
 }
 
 .checkbox-grid {
@@ -1399,6 +1312,16 @@ input {
 
 .hidden {
   display: none !important;
+}
+
+.icon-btn:focus-visible,
+.cta:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-danger:focus-visible,
+.social-btn:focus-visible {
+  outline: 2px solid var(--accent-soft);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {

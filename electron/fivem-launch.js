@@ -22,16 +22,38 @@ function isFiveMInstalled() {
   return Boolean(executablePath && fs.existsSync(executablePath));
 }
 
+let processListCache = {
+  output: '',
+  expiresAt: 0
+};
+
+const PROCESS_LIST_TTL_MS = 2000;
+
 function getProcessListOutput() {
+  const now = Date.now();
+
+  if (now < processListCache.expiresAt) {
+    return processListCache.output;
+  }
+
+  let output = '';
+
   try {
-    return execSync('tasklist /NH', {
+    output = execSync('tasklist /NH', {
       encoding: 'utf8',
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'ignore']
     }).toLowerCase();
   } catch {
-    return '';
+    output = '';
   }
+
+  processListCache = {
+    output,
+    expiresAt: now + PROCESS_LIST_TTL_MS
+  };
+
+  return output;
 }
 
 function isFiveMInGame(processListOutput = getProcessListOutput()) {
@@ -171,5 +193,6 @@ module.exports = {
   getFiveMPlayState,
   isFiveMInstalled,
   launchDaltonLife,
+  validateServerHost,
   writeConnectShortcut
 };
