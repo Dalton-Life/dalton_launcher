@@ -229,25 +229,40 @@ ipcMain.handle('launcher:resolve-install-path', (_event, targetPath) => {
 ipcMain.handle('launcher:install', async (_event, options) => {
   try {
     const targetPath = options?.installPath || readNormalizedConfig().launcherInstallPath;
+    const createDesktopShortcut = Boolean(options?.createDesktopShortcut);
     const installResult = installLauncher(app, readConfig(), targetPath, {
-      createDesktopShortcut: Boolean(options?.createDesktopShortcut),
+      createDesktopShortcut,
       iconPath,
       projectRoot
     });
 
+    const shortcutCreated = Boolean(installResult.shortcutResult?.ok);
+
+    if (createDesktopShortcut && !shortcutCreated) {
+      return {
+        ok: false,
+        message:
+          installResult.shortcutResult?.message ||
+          'No se pudo crear el acceso directo en el escritorio.',
+        installPath: installResult.launcherInstallPath,
+        shortcutCreated: false
+      };
+    }
+
     const next = writeNormalizedConfig({
       ...installResult,
       installPath: installResult.serverInstallPath,
-      desktopShortcut: installResult.desktopShortcut
+      desktopShortcut: createDesktopShortcut && shortcutCreated
     });
 
     return {
       ok: true,
-      message: installResult.desktopShortcut
-        ? 'Launcher instalado y acceso directo creado.'
-        : 'Launcher instalado correctamente.',
+      message:
+        createDesktopShortcut && shortcutCreated
+          ? 'Launcher instalado y acceso directo creado.'
+          : 'Launcher instalado correctamente.',
       installPath: next.launcherInstallPath,
-      shortcutCreated: Boolean(installResult.shortcutResult?.ok)
+      shortcutCreated
     };
   } catch (error) {
     return {

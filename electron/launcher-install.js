@@ -120,13 +120,20 @@ $shortcut.Description = 'Dalton Launcher'
 $shortcut.Save()
 `;
 
-  execFileSync(
-    'powershell',
-    ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script],
-    { stdio: 'pipe' }
-  );
+  try {
+    execFileSync(
+      'powershell',
+      ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script],
+      { stdio: 'pipe' }
+    );
 
-  return { ok: true, shortcutPath };
+    return { ok: true, shortcutPath };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error.message || 'No se pudo crear el acceso directo en el escritorio.'
+    };
+  }
 }
 
 function removeDesktopShortcut(app) {

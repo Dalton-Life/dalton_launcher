@@ -773,7 +773,7 @@ btnInstallLauncher.addEventListener('click', async () => {
   });
 
   if (!result.ok) {
-    setInstallStatus('ERROR DE INSTALACIÓN', config.launcherInstallPath);
+    setInstallStatus(result.message || 'ERROR DE INSTALACIÓN', config.launcherInstallPath);
     return;
   }
 
