@@ -289,6 +289,11 @@ function applyServerStatus(status) {
     serverStatusText.textContent = 'OFFLINE';
     serverPlayers.textContent = status.error ? status.error.toUpperCase() : 'JUGADORES: —';
     updateServerPing(null);
+
+    if (currentPlayState === 'idle' && !launchPending) {
+      updateStartButton('idle');
+    }
+
     return;
   }
 
@@ -300,6 +305,10 @@ function applyServerStatus(status) {
   serverStatusText.textContent = 'EN LÍNEA';
   serverPlayers.textContent = `JUGADORES: ${status.clients} / ${status.maxClients || '—'}`;
   updateServerPing(status.ping);
+
+  if (currentPlayState === 'idle' && !launchPending) {
+    updateStartButton('idle');
+  }
 }
 
 async function queryServerStatus() {
@@ -339,10 +348,17 @@ async function refreshServerStatusNow() {
   const ip = String(config?.serverIp || '').trim();
 
   if (!ip) {
+    hasDisplayedServerStatus = true;
+    lastServerOnlineState = false;
     serverStatusDot.className = 'server-card__dot server-card__dot--offline';
     serverStatusText.textContent = 'SIN CONFIGURAR';
     serverPlayers.textContent = 'JUGADORES: —';
     updateServerPing(null);
+
+    if (currentPlayState === 'idle' && !launchPending) {
+      updateStartButton('idle');
+    }
+
     return;
   }
 
@@ -400,25 +416,37 @@ function stopServerStatusPolling() {
 
 function updateStartButton(state) {
   currentPlayState = state;
-  const isIdle = state === 'idle';
-
-  btnStartDalton.disabled = !isIdle;
-  btnStartDalton.classList.toggle('cta--running', state === 'running');
-  btnStartDalton.classList.toggle('cta--connecting', state === 'connecting');
-  updateServerCardConnectingAnimation(state === 'connecting');
+  btnStartDalton.classList.remove('cta--running', 'cta--connecting', 'cta--offline');
 
   if (state === 'running') {
+    btnStartDalton.disabled = true;
+    btnStartDalton.classList.add('cta--running');
     btnStartDalton.textContent = 'EN EJECUCIÓN';
+    updateServerCardConnectingAnimation(false);
     syncDiscordPresence(state);
     return;
   }
 
   if (state === 'connecting') {
+    btnStartDalton.disabled = true;
+    btnStartDalton.classList.add('cta--connecting');
     btnStartDalton.textContent = 'CONECTANDO...';
+    updateServerCardConnectingAnimation(true);
     syncDiscordPresence(state);
     return;
   }
 
+  updateServerCardConnectingAnimation(false);
+
+  if (hasDisplayedServerStatus && lastServerOnlineState === false) {
+    btnStartDalton.disabled = true;
+    btnStartDalton.classList.add('cta--offline');
+    btnStartDalton.textContent = 'SERVIDOR OFFLINE';
+    syncDiscordPresence(state);
+    return;
+  }
+
+  btnStartDalton.disabled = false;
   btnStartDalton.textContent = 'INICIAR DALTON LIFE';
   syncDiscordPresence(state);
 }

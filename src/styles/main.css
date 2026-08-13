@@ -725,7 +725,8 @@ input {
 
 .cta:disabled,
 .cta.cta--running,
-.cta.cta--connecting {
+.cta.cta--connecting,
+.cta.cta--offline {
   opacity: 0.72;
   cursor: not-allowed;
   transform: none;
@@ -741,6 +742,12 @@ input {
 .cta--connecting {
   color: var(--PrimaryColor);
   background: rgba(124, 64, 160, 0.35);
+  box-shadow: none;
+}
+
+.cta--offline {
+  color: #ff8a90;
+  background: rgba(255, 52, 64, 0.18);
   box-shadow: none;
 }
 
