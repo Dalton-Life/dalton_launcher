@@ -68,6 +68,7 @@ function initAutoUpdater(window) {
 
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = false;
+  autoUpdater.verifyUpdateCodeSignature = false;
   autoUpdater.logger = {
     info: (...args) => console.log('[updater]', ...args),
     warn: (...args) => console.warn('[updater]', ...args),

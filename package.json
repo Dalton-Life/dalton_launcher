@@ -46,7 +46,8 @@
       ],
       "icon": "assets/icon.ico",
       "publisherName": "Dalton Life",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "verifyUpdateCodeSignature": false
     },
     "nsis": {
       "oneClick": false,
