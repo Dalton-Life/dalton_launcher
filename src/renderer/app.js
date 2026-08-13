@@ -26,6 +26,9 @@ const btnUpdateRestart = document.getElementById('btn-update-restart');
 const btnUpdateLater = document.getElementById('btn-update-later');
 const btnCheckUpdates = document.getElementById('btn-check-updates');
 const updateStatus = document.getElementById('update-status');
+const updateFeedbackActions = document.getElementById('update-feedback-actions');
+const btnRetryUpdates = document.getElementById('btn-retry-updates');
+const btnRelaunchLauncher = document.getElementById('btn-relaunch-launcher');
 const updateBadge = document.getElementById('update-badge');
 const pendingUpdateBanner = document.getElementById('pending-update-banner');
 const pendingUpdateBannerText = document.getElementById('pending-update-banner-text');
@@ -210,8 +213,27 @@ function setUpdateStatus(message, type = 'info') {
   updateStatus.classList.remove('hidden');
 }
 
+function setUpdateFeedbackActions({ showRetry = false, showRelaunch = false } = {}) {
+  const visible = showRetry || showRelaunch;
+  updateFeedbackActions?.classList.toggle('hidden', !visible);
+  btnRetryUpdates?.classList.toggle('hidden', !showRetry);
+  btnRelaunchLauncher?.classList.toggle('hidden', !showRelaunch);
+}
+
+function showUpdateError(message, { manual = false, startup = false } = {}) {
+  if (manual) {
+    setUpdateStatus(message, 'error');
+    setUpdateFeedbackActions({ showRetry: true, showRelaunch: true });
+  }
+
+  if (manual || startup) {
+    showUpdateToast(message, { type: 'error', retry: true });
+  }
+}
+
 function clearUpdateStatus() {
   updateStatus?.classList.add('hidden');
+  setUpdateFeedbackActions();
 }
 
 function refreshUpdateButton() {
@@ -892,7 +914,7 @@ function showUpdateReady(version, releaseNotes = pendingUpdateReleaseNotes) {
     title: 'LISTO PARA REINICIAR',
     message: `La versión v${formatUpdateVersion(version)} está lista para instalar.`,
     mode: 'ready',
-    hint: 'Puedes reiniciar ahora o seguir usando el launcher.'
+    hint: 'Debes reiniciar el launcher para aplicar la actualización. No basta con recargar la ventana.'
   });
 }
 
@@ -946,6 +968,7 @@ function setupUpdaterListeners() {
       case 'available':
         setManualUpdateChecking(false);
         hideUpdateToast();
+        setUpdateFeedbackActions();
         resolveStartupUpdateCheckIfNeeded();
         pendingUpdateReleaseNotes = event.releaseNotes || null;
         setUpdateNotes(null, false);
@@ -968,6 +991,7 @@ function setupUpdaterListeners() {
         setManualUpdateChecking(false);
         resolveStartupUpdateCheckIfNeeded();
         hideUpdateOverlay();
+        setUpdateFeedbackActions();
         if (event.manual) {
           setUpdateStatus('Ya tienes la última versión.', 'success');
         }
@@ -976,14 +1000,10 @@ function setupUpdaterListeners() {
         setManualUpdateChecking(false);
         resolveStartupUpdateCheckIfNeeded();
         hideUpdateOverlay();
-        if (event.manual) {
-          setUpdateStatus(event.message || 'No se pudo comprobar actualizaciones.', 'error');
-        } else if (event.startup) {
-          showUpdateToast(event.message || 'No se pudo comprobar actualizaciones.', {
-            type: 'error',
-            retry: true
-          });
-        }
+        showUpdateError(event.message || 'No se pudo comprobar actualizaciones.', {
+          manual: Boolean(event.manual),
+          startup: Boolean(event.startup)
+        });
         break;
       default:
         break;
@@ -1236,10 +1256,20 @@ btnUpdateLater?.addEventListener('click', () => {
 
   if (pendingUpdateVersion) {
     setUpdateStatus(
-      `Actualización v${formatUpdateVersion(pendingUpdateVersion)} lista. Pulsa "Reiniciar para actualizar" cuando quieras.`,
+      `Actualización v${formatUpdateVersion(pendingUpdateVersion)} lista. Pulsa "Reiniciar para actualizar" para aplicarla.`,
       'info'
     );
   }
+});
+
+btnRetryUpdates?.addEventListener('click', async () => {
+  clearUpdateStatus();
+  hideUpdateToast();
+  await window.dalton.checkForUpdates({ manual: true });
+});
+
+btnRelaunchLauncher?.addEventListener('click', async () => {
+  await window.dalton.relaunchApp();
 });
 
 btnPendingUpdateRestart?.addEventListener('click', async () => {

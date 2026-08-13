@@ -42,7 +42,17 @@ function formatUpdaterError(error) {
   }
 
   if (message.length > 160 || message.includes('statusCode') || message.includes('"headers"')) {
-    return 'No se pudo comprobar actualizaciones. Inténtalo más tarde.';
+    if (/ENOTFOUND|ETIMEDOUT|ECONNREFUSED|network|fetch failed/i.test(message)) {
+      return 'Sin conexión. Comprueba tu internet e inténtalo de nuevo.';
+    }
+
+    const firstLine = message.split('\n')[0].trim();
+
+    if (firstLine && firstLine.length <= 160) {
+      return firstLine;
+    }
+
+    return 'No se pudo comprobar actualizaciones. Inténtalo de nuevo o reinicia el launcher.';
   }
 
   return message || 'No se pudo comprobar actualizaciones.';

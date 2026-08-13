@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('dalton', {
   getVersion: () => ipcRenderer.invoke('app:get-version'),
+  relaunchApp: () => ipcRenderer.invoke('app:relaunch'),
   getConfig: () => ipcRenderer.invoke('config:get'),
   setConfig: (partial) => ipcRenderer.invoke('config:set', partial),
   selectFolder: () => ipcRenderer.invoke('dialog:select-folder'),

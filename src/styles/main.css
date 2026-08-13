@@ -1200,6 +1200,16 @@ input {
   border: 1px solid rgba(255, 52, 64, 0.35);
 }
 
+.update-feedback-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.update-feedback-actions .btn-secondary {
+  width: 100%;
+}
+
 .update-size {
   margin-top: 0.75rem !important;
   font-family: var(--AkrobatSemiBold), var(--font);
