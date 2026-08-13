@@ -18,10 +18,7 @@ function formatUpdaterError(error) {
   const statusCode = Number(error?.statusCode) || null;
 
   if (statusCode === 404 || /\b404\b/.test(message)) {
-    return (
-      'No se encontró ninguna actualización publicada. ' +
-      'Comprueba que el release esté publicado en GitHub (no en borrador).'
-    );
+    return 'No se encontró ninguna actualización.';
   }
 
   if (statusCode === 401 || statusCode === 403 || /\b(401|403)\b/.test(message)) {
