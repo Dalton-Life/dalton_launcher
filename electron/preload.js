@@ -1,6 +1,8 @@
 const { contextBridge, ipcRenderer } = require('electron');
+const { version: packageVersion } = require('../package.json');
 
 contextBridge.exposeInMainWorld('dalton', {
+  packageVersion,
   getVersion: () => ipcRenderer.invoke('app:get-version'),
   relaunchApp: () => ipcRenderer.invoke('app:relaunch'),
   getConfig: () => ipcRenderer.invoke('config:get'),

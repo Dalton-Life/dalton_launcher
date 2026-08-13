@@ -6,12 +6,10 @@
   "author": "Dalton",
   "license": "MIT",
   "scripts": {
-    "prestart": "node scripts/sync-version-html.js",
     "start": "electron .",
-    "predev": "node scripts/sync-version-html.js",
     "dev": "electron . --enable-logging",
     "pack": "electron-builder --dir",
-    "predist": "node scripts/sync-version-html.js && node scripts/prepare-dist.js && node scripts/generate-icon.js",
+    "predist": "node scripts/prepare-dist.js && node scripts/generate-icon.js",
     "dist": "electron-builder",
     "generate-icon": "node scripts/generate-icon.js"
   },
