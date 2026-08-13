@@ -6,7 +6,6 @@ contextBridge.exposeInMainWorld('dalton', {
   setConfig: (partial) => ipcRenderer.invoke('config:set', partial),
   selectFolder: () => ipcRenderer.invoke('dialog:select-folder'),
   resolveInstallPath: (targetPath) => ipcRenderer.invoke('launcher:resolve-install-path', targetPath),
-  installServer: (options) => ipcRenderer.invoke('launcher:install-server', options),
   installLauncher: (options) => ipcRenderer.invoke('launcher:install', options),
   startDaltonLife: () => ipcRenderer.invoke('launcher:start-dalton-life'),
   isFiveMInstalled: () => ipcRenderer.invoke('fivem:is-installed'),

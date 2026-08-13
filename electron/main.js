@@ -48,13 +48,6 @@ function readConfig() {
     launcherInstallPath: getDefaultLauncherInstallPath(app),
     installPath: path.join(getDefaultLauncherInstallPath(app), 'server'),
     serverInstalled: false,
-    repositories: {
-      configs: true,
-      assets: true,
-      vehicles: true,
-      audio: true,
-      scripts: true
-    },
     muteBackgroundMusic: false,
     muteButtonSounds: false,
     backgroundMusicVolume: 22,
@@ -99,6 +92,7 @@ function writeConfig(config) {
   delete persisted.serverIp;
   delete persisted.serverPort;
   delete persisted.serverConnect;
+  delete persisted.repositories;
 
   fs.mkdirSync(userDataPath(), { recursive: true });
   fs.writeFileSync(configPath(), JSON.stringify(persisted, null, 2), 'utf8');
@@ -308,29 +302,6 @@ ipcMain.handle('launcher:uninstall', async () => {
   };
 });
 
-ipcMain.handle('launcher:install-server', async (_event, options) => {
-  const config = readNormalizedConfig();
-
-  if (!config.launcherInstalled) {
-    return { ok: false, message: 'Instala el launcher primero.' };
-  }
-
-  const installPath = options?.installPath || config.installPath;
-
-  fs.mkdirSync(installPath, { recursive: true });
-
-  writeNormalizedConfig({
-    serverInstalled: true,
-    installPath
-  });
-
-  return {
-    ok: true,
-    message: 'Instalación del servidor completada.',
-    installPath
-  };
-});
-
 ipcMain.handle('launcher:start-dalton-life', async () => {
   const config = readNormalizedConfig();
 
@@ -418,16 +389,6 @@ ipcMain.handle('discord:sync', async (_event, state = 'idle') => {
   const ok = await syncDiscordPresence(state);
   return { ok };
 });
-
-ipcMain.handle('launcher:update-server', async () => ({
-  ok: true,
-  message: 'Actualización de scripts simulada.'
-}));
-
-ipcMain.handle('launcher:update-artifacts', async () => ({
-  ok: true,
-  message: 'Actualización de artifacts simulada.'
-}));
 
 ipcMain.handle('shell:open-external', async (_event, url) => {
   const safeUrl = parseAllowedExternalUrl(url);
