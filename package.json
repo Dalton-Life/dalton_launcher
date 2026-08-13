@@ -6,10 +6,11 @@
   "author": "Dalton",
   "license": "MIT",
   "scripts": {
+    "prestart": "node scripts/sync-version-html.js",
     "start": "electron .",
     "dev": "electron . --enable-logging",
     "pack": "electron-builder --dir",
-    "predist": "node scripts/prepare-dist.js && node scripts/generate-icon.js",
+    "predist": "node scripts/sync-version-html.js && node scripts/prepare-dist.js && node scripts/generate-icon.js",
     "dist": "electron-builder",
     "generate-icon": "node scripts/generate-icon.js"
   },
@@ -37,7 +38,8 @@
       "provider": "github",
       "owner": "Dalton-Life",
       "repo": "dalton_launcher",
-      "releaseType": "release"
+      "releaseType": "release",
+      "private": true
     },
     "win": {
       "target": [

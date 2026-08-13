@@ -13,6 +13,40 @@ function send(type, payload = {}) {
   mainWindow.webContents.send('updater:event', { type, ...payload });
 }
 
+function formatUpdaterError(error) {
+  const message = String(error?.message || error || '');
+  const statusCode = Number(error?.statusCode) || null;
+
+  if (statusCode === 404 || /\b404\b/.test(message)) {
+    return (
+      'No se encontró ninguna actualización publicada. ' +
+      'Comprueba que el release esté publicado en GitHub (no en borrador).'
+    );
+  }
+
+  if (statusCode === 401 || statusCode === 403 || /\b(401|403)\b/.test(message)) {
+    return 'No se pudo acceder al release. Revisa el token de actualizaciones en el build.';
+  }
+
+  if (message.length > 160 || message.includes('statusCode') || message.includes('"headers"')) {
+    return 'No se pudo comprobar actualizaciones. Inténtalo más tarde.';
+  }
+
+  return message || 'No se pudo comprobar actualizaciones.';
+}
+
+function configureUpdaterAuth() {
+  const token = String(process.env.GITHUB_UPDATER_TOKEN || '').trim();
+
+  if (!token) {
+    return;
+  }
+
+  autoUpdater.requestHeaders = {
+    Authorization: `token ${token}`
+  };
+}
+
 function initAutoUpdater(window) {
   mainWindow = window;
   enabled = app.isPackaged && !process.argv.includes('--enable-logging');
@@ -21,6 +55,7 @@ function initAutoUpdater(window) {
     return;
   }
 
+  configureUpdaterAuth();
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = false;
   autoUpdater.logger = {
@@ -58,7 +93,7 @@ function initAutoUpdater(window) {
 
   autoUpdater.on('error', (error) => {
     send('error', {
-      message: error?.message || 'Error de actualización',
+      message: formatUpdaterError(error),
       manual: manualCheck
     });
     manualCheck = false;
@@ -77,11 +112,11 @@ async function checkForUpdates({ manual = false } = {}) {
     return { ok: true };
   } catch (error) {
     send('error', {
-      message: error.message || 'No se pudo comprobar actualizaciones.',
+      message: formatUpdaterError(error),
       manual: manualCheck
     });
     manualCheck = false;
-    return { ok: false, message: error.message };
+    return { ok: false, message: formatUpdaterError(error) };
   }
 }
 
@@ -92,7 +127,7 @@ function scheduleUpdateCheck(delayMs = 3000) {
 
   setTimeout(() => {
     checkForUpdates({ manual: false }).catch((error) => {
-      console.error('[updater] scheduled check failed:', error?.message || error);
+      console.error('[updater] scheduled check failed:', formatUpdaterError(error));
     });
   }, delayMs);
 }

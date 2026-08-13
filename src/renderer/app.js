@@ -24,7 +24,7 @@ const btnUpdateRestart = document.getElementById('btn-update-restart');
 const btnUpdateLater = document.getElementById('btn-update-later');
 const btnCheckUpdates = document.getElementById('btn-check-updates');
 const updateStatus = document.getElementById('update-status');
-const DEFAULT_APP_VERSION = '0.1';
+const DEFAULT_APP_VERSION = '0.1.0';
 let appVersion = DEFAULT_APP_VERSION;
 let updateInProgress = false;
 let pendingUpdateVersion = null;
@@ -61,9 +61,7 @@ const PLAY_STATE_INTERVAL_MS = 2000;
 
 function formatDisplayVersion(version) {
   const raw = String(version || DEFAULT_APP_VERSION).trim().replace(/^v/i, '');
-  const match = raw.match(/^(\d+)\.(\d+)/);
-
-  return match ? `${match[1]}.${match[2]}` : raw;
+  return raw || DEFAULT_APP_VERSION;
 }
 
 function formatVersionLabel(version = appVersion) {

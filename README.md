@@ -64,7 +64,9 @@ El workflow `.github/workflows/release.yml` se ejecuta al pushear un tag `v*`. N
 
 | Secret | Descripción |
 |--------|-------------|
-| `ENV_PRODUCTION` | Contenido completo de `.env.production` (SERVER_IP, Discord, etc.) |
+| `ENV_PRODUCTION` | Contenido completo de `.env.production` (SERVER_IP, Discord, `GITHUB_UPDATER_TOKEN`, etc.) |
+
+`GITHUB_UPDATER_TOKEN` es necesario porque el repo es **privado**: sin él, `electron-updater` recibe 404 al buscar `latest.yml`. Usa un fine-grained token con permiso de lectura en releases/contents del repo.
 
 `GITHUB_TOKEN` se usa automáticamente para publicar el release.
 
