@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; media-src 'self';"
+    />
+    <title>Dalton Launcher</title>
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <div id="app">
+      <section id="splash-view" class="view view--active">
+        <div class="splash-content">
+          <img
+            class="splash-logo"
+            src="assets/LOGOTIPO - DALTON.svg"
+            alt="Dalton"
+          />
+          <p class="splash-tagline">ROLEPLAY SERVER</p>
+        </div>
+        <div class="splash-mask" aria-hidden="true"></div>
+      </section>
+
+      <section id="install-view" class="view">
+        <div class="bg-layer"></div>
+        <div class="bg-overlay"></div>
+
+        <header class="titlebar">
+          <div class="titlebar-drag"></div>
+          <div class="titlebar-actions">
+            <button class="icon-btn" id="btn-minimize-install" title="Minimizar" aria-label="Minimizar">
+              <img src="../assets/minimizar-icon.svg" alt="" class="icon-btn__image icon-btn__image--minimize" />
+            </button>
+            <button class="icon-btn icon-btn--close" id="btn-close-install" title="Cerrar" aria-label="Cerrar">
+              <img src="../assets/close-icon.svg" alt="" class="icon-btn__image" />
+            </button>
+          </div>
+        </header>
+
+        <main class="home-main install-main">
+          <div class="brand-block">
+            <span class="brand-kicker">DALTON LIFE</span>
+            <h1 class="brand-title">INSTALAR LAUNCHER</h1>
+            <p class="brand-subtitle">CONFIGURA DALTON CITY EN TU PC</p>
+          </div>
+
+          <div class="action-block install-block">
+            <label class="field-label" for="launcher-install-path">Carpeta de instalación</label>
+            <p class="install-hint">Todo se instalará dentro de una carpeta llamada <strong>Dalton Launcher</strong>.</p>
+            <div class="path-row install-path-row">
+              <input id="launcher-install-path" type="text" readonly />
+              <button class="btn-secondary" id="btn-browse-launcher">Examinar</button>
+            </div>
+
+            <label class="install-option">
+              <input type="checkbox" id="create-desktop-shortcut" checked />
+              Crear acceso directo en el escritorio
+            </label>
+
+            <div class="primary-actions">
+              <button class="cta cta--primary" id="btn-install-launcher">INSTALAR LAUNCHER</button>
+            </div>
+
+            <div class="status-line">
+              <span id="install-status-label">LISTO PARA INSTALAR</span>
+              <span id="install-status-path"></span>
+            </div>
+          </div>
+        </main>
+
+        <footer class="home-footer">
+          <div class="social-links">
+            <button
+              class="social-btn"
+              type="button"
+              data-social-url="https://discord.gg/g2wYRtqphT"
+              title="Discord"
+              aria-label="Discord"
+            >
+              <img src="../assets/discord-icon.svg" alt="" class="social-btn__icon" />
+            </button>
+            <button
+              class="social-btn"
+              type="button"
+              data-social-url="https://www.tiktok.com/@daltonliferp"
+              title="TikTok"
+              aria-label="TikTok"
+            >
+              <img src="../assets/tiktok-icon.svg" alt="" class="social-btn__icon" />
+            </button>
+            <button
+              class="social-btn"
+              type="button"
+              data-social-url="https://www.instagram.com/daltonxlife/"
+              title="Instagram"
+              aria-label="Instagram"
+            >
+              <img src="../assets/instagram-icon.svg" alt="" class="social-btn__icon" />
+            </button>
+            <button
+              class="social-btn"
+              type="button"
+              data-social-url="https://store.daltonxlife.org/"
+              title="Página web"
+              aria-label="Página web"
+            >
+              <img src="../assets/web-icon.svg" alt="" class="social-btn__icon" />
+            </button>
+          </div>
+          <span id="install-footer-version">VERSION v0.1.0 — EARLY ACCESS</span>
+        </footer>
+
+        <section id="install-overlay" class="update-overlay hidden" aria-hidden="true">
+          <div class="update-card">
+            <h2>INSTALANDO</h2>
+            <p id="install-message">Preparando Dalton Launcher...</p>
+            <div class="progress-row">
+              <div class="progress-track">
+                <div id="install-progress-bar" class="progress-fill"></div>
+              </div>
+              <span id="install-progress-value">0%</span>
+            </div>
+            <p class="update-hint">No cierres el launcher.</p>
+          </div>
+        </section>
+      </section>
+
+      <section id="home-view" class="view">
+        <div class="bg-layer"></div>
+        <div class="bg-overlay"></div>
+
+        <header class="titlebar">
+          <div class="titlebar-drag"></div>
+          <div class="titlebar-actions">
+            <button
+              class="icon-btn icon-btn--badge"
+              id="btn-notifications"
+              title="Notificaciones"
+              aria-label="Notificaciones"
+            >
+              <img src="../assets/bell-icon.svg" alt="" class="icon-btn__image icon-btn__image--bell" />
+              <span class="notification-badge hidden" id="notification-badge" aria-hidden="true">0</span>
+            </button>
+            <button class="icon-btn" id="btn-settings" title="Ajustes" aria-label="Ajustes">
+              <img src="../assets/setting-icon.svg" alt="" class="icon-btn__image" />
+            </button>
+            <button class="icon-btn" id="btn-minimize" title="Minimizar" aria-label="Minimizar">
+              <img src="../assets/minimizar-icon.svg" alt="" class="icon-btn__image icon-btn__image--minimize" />
+            </button>
+            <button class="icon-btn icon-btn--close" id="btn-close" title="Cerrar" aria-label="Cerrar">
+              <img src="../assets/close-icon.svg" alt="" class="icon-btn__image" />
+            </button>
+          </div>
+        </header>
+
+        <main class="home-main">
+          <div class="brand-block">
+            <span class="brand-kicker">DALTON LIFE</span>
+            <h1 class="brand-title">MEET DALTON CITY</h1>
+            <p class="brand-subtitle">ROLEPLAY SERVER</p>
+          </div>
+
+          <div class="server-card" id="server-card" aria-live="polite">
+            <div class="server-card__header">
+              <div class="server-card__status-row">
+                <span class="server-card__dot server-card__dot--checking" id="server-status-dot"></span>
+                <span class="server-card__status" id="server-status-text">VERIFICANDO...</span>
+              </div>
+              <span class="server-card__ping server-card__ping--none" id="server-ping">—</span>
+            </div>
+            <h3 class="server-card__name" id="server-hostname">Dalton Life</h3>
+            <p class="server-card__players" id="server-players">—</p>
+          </div>
+
+          <div class="action-block">
+            <div id="primary-actions" class="primary-actions">
+              <button class="cta cta--primary" id="btn-start-dalton">INICIAR DALTON LIFE</button>
+            </div>
+          </div>
+        </main>
+
+        <footer class="home-footer">
+          <div class="social-links">
+            <button
+              class="social-btn"
+              type="button"
+              data-social-url="https://discord.gg/g2wYRtqphT"
+              title="Discord"
+              aria-label="Discord"
+            >
+              <img src="../assets/discord-icon.svg" alt="" class="social-btn__icon" />
+            </button>
+            <button
+              class="social-btn"
+              type="button"
+              data-social-url="https://www.tiktok.com/@daltonliferp"
+              title="TikTok"
+              aria-label="TikTok"
+            >
+              <img src="../assets/tiktok-icon.svg" alt="" class="social-btn__icon" />
+            </button>
+            <button
+              class="social-btn"
+              type="button"
+              data-social-url="https://www.instagram.com/daltonxlife/"
+              title="Instagram"
+              aria-label="Instagram"
+            >
+              <img src="../assets/instagram-icon.svg" alt="" class="social-btn__icon" />
+            </button>
+            <button
+              class="social-btn"
+              type="button"
+              data-social-url="https://store.daltonxlife.org/"
+              title="Página web"
+              aria-label="Página web"
+            >
+              <img src="../assets/web-icon.svg" alt="" class="social-btn__icon" />
+            </button>
+          </div>
+          <span id="footer-version">VERSION v0.1.0 — EARLY ACCESS</span>
+        </footer>
+
+        <aside id="settings-panel" class="settings-panel" aria-hidden="true">
+          <div class="settings-header">
+            <h2>AJUSTES</h2>
+            <button class="icon-btn" id="btn-close-settings" aria-label="Cerrar ajustes">
+              <img src="../assets/close-icon.svg" alt="" class="icon-btn__image" />
+            </button>
+          </div>
+
+          <h3 class="settings-section">Preferencias</h3>
+          <div class="checkbox-grid">
+            <label><input type="checkbox" id="mute-music" /> Silenciar música de fondo</label>
+            <label><input type="checkbox" id="mute-sfx" /> Silenciar sonidos de botones</label>
+          </div>
+
+          <label class="field-label" for="music-volume">Volumen de música</label>
+          <div class="volume-row">
+            <input
+              id="music-volume"
+              class="settings-range"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value="22"
+            />
+            <span class="volume-value" id="music-volume-value">22%</span>
+          </div>
+
+          <div class="settings-actions">
+            <button class="btn-secondary" id="btn-open-fivem-site">Descargar FiveM</button>
+          </div>
+
+          <div class="danger-zone">
+            <h3>Zona peligrosa</h3>
+            <button class="btn-danger" id="btn-clear-fivem-cache">Borrar caché FiveM</button>
+            <button class="btn-danger" id="btn-uninstall-launcher">Desinstalar launcher</button>
+          </div>
+        </aside>
+
+        <aside id="notifications-panel" class="notifications-panel side-panel" aria-hidden="true">
+          <div class="settings-header">
+            <h2>NOTIFICACIONES</h2>
+            <button class="icon-btn" id="btn-close-notifications" aria-label="Cerrar notificaciones">
+              <img src="../assets/close-icon.svg" alt="" class="icon-btn__image" />
+            </button>
+          </div>
+          <div class="notifications-list" id="notifications-list"></div>
+        </aside>
+
+        <section id="update-overlay" class="update-overlay hidden" aria-hidden="true">
+          <div class="update-card">
+            <h2 id="update-title" class="glitch" data-text="ACTUALIZANDO">ACTUALIZANDO</h2>
+            <p id="update-message">Descargando componentes...</p>
+            <div id="update-spinner" class="update-spinner hidden" aria-hidden="true"></div>
+            <div id="update-progress-row" class="progress-row">
+              <div class="progress-track">
+                <div id="progress-bar" class="progress-fill"></div>
+              </div>
+              <span id="progress-value">0%</span>
+            </div>
+            <p id="update-hint" class="update-hint">No cierres el launcher.</p>
+          </div>
+        </section>
+      </section>
+    </div>
+
+    <script src="renderer/sounds.js"></script>
+    <script src="renderer/app.js"></script>
+  </body>
+</html>

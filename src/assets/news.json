@@ -1,0 +1,26 @@
+{
+  "items": [
+    {
+      "id": "allowlist",
+      "tag": "AVISO",
+      "title": "Allowlist activa",
+      "body": "Únete a nuestro Discord para solicitar acceso al servidor.",
+      "link": "https://discord.gg/g2wYRtqphT",
+      "linkLabel": "Unirse al Discord"
+    },
+    {
+      "id": "launcher",
+      "tag": "NOVEDAD",
+      "title": "Dalton Launcher",
+      "body": "Conecta a Dalton Life con un clic. El estado del servidor se actualiza en tiempo real."
+    },
+    {
+      "id": "store",
+      "tag": "TIENDA",
+      "title": "Dalton Store",
+      "body": "Explora scripts premium y recursos para tu servidor FiveM.",
+      "link": "https://store.daltonxlife.org/",
+      "linkLabel": "Visitar tienda"
+    }
+  ]
+}

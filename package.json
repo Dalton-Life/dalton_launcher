@@ -1,0 +1,47 @@
+{
+  "name": "dalton-launcher",
+  "version": "0.1.0",
+  "description": "Launcher e instalador para servidor FiveM — Dalton",
+  "main": "electron/main.js",
+  "author": "Dalton",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --enable-logging",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "generate-icon": "node scripts/generate-icon.js"
+  },
+  "build": {
+    "appId": "com.dalton.launcher",
+    "productName": "Dalton Launcher",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^25.1.8",
+    "png-to-ico": "^3.0.2",
+    "sharp": "^0.35.3"
+  },
+  "dependencies": {
+    "discord-rpc": "^4.0.1",
+    "dotenv": "^17.4.2"
+  }
+}
