@@ -24,7 +24,6 @@ const { getAppVersion } = require('./version');
 const {
   initAutoUpdater,
   checkForUpdates,
-  scheduleUpdateCheck,
   quitAndInstall
 } = require('./auto-updater');
 
@@ -179,7 +178,6 @@ app.whenReady().then(async () => {
 
   createWindow();
   initAutoUpdater(mainWindow);
-  scheduleUpdateCheck(3000);
 
   if (startupConfig.launcherInstalled && startupConfig.serverIp?.trim() && startupConfig.launcherInstallPath) {
     try {

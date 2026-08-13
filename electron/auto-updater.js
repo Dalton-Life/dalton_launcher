@@ -4,6 +4,7 @@ const { autoUpdater } = require('electron-updater');
 let mainWindow = null;
 let enabled = false;
 let manualCheck = false;
+let startupCheck = false;
 
 function send(type, payload = {}) {
   if (!mainWindow || mainWindow.isDestroyed()) {
@@ -63,16 +64,17 @@ function initAutoUpdater(window) {
   };
 
   autoUpdater.on('checking-for-update', () => {
-    send('checking', { manual: manualCheck });
+    send('checking', { manual: manualCheck, startup: startupCheck });
   });
 
   autoUpdater.on('update-available', (info) => {
-    send('available', { version: info.version, manual: manualCheck });
+    send('available', { version: info.version, manual: manualCheck, startup: startupCheck });
   });
 
   autoUpdater.on('update-not-available', () => {
-    send('not-available', { manual: manualCheck });
+    send('not-available', { manual: manualCheck, startup: startupCheck });
     manualCheck = false;
+    startupCheck = false;
   });
 
   autoUpdater.on('download-progress', (progress) => {
@@ -91,18 +93,21 @@ function initAutoUpdater(window) {
   autoUpdater.on('error', (error) => {
     send('error', {
       message: formatUpdaterError(error),
-      manual: manualCheck
+      manual: manualCheck,
+      startup: startupCheck
     });
     manualCheck = false;
+    startupCheck = false;
   });
 }
 
-async function checkForUpdates({ manual = false } = {}) {
+async function checkForUpdates({ manual = false, startup = false } = {}) {
   if (!enabled) {
     return { ok: false, skipped: true };
   }
 
   manualCheck = Boolean(manual);
+  startupCheck = Boolean(startup);
 
   try {
     await autoUpdater.checkForUpdates();
@@ -110,23 +115,13 @@ async function checkForUpdates({ manual = false } = {}) {
   } catch (error) {
     send('error', {
       message: formatUpdaterError(error),
-      manual: manualCheck
+      manual: manualCheck,
+      startup: startupCheck
     });
     manualCheck = false;
+    startupCheck = false;
     return { ok: false, message: formatUpdaterError(error) };
   }
-}
-
-function scheduleUpdateCheck(delayMs = 3000) {
-  if (!enabled) {
-    return;
-  }
-
-  setTimeout(() => {
-    checkForUpdates({ manual: false }).catch((error) => {
-      console.error('[updater] scheduled check failed:', formatUpdaterError(error));
-    });
-  }, delayMs);
 }
 
 function quitAndInstall() {
@@ -140,6 +135,5 @@ function quitAndInstall() {
 module.exports = {
   initAutoUpdater,
   checkForUpdates,
-  scheduleUpdateCheck,
   quitAndInstall
 };

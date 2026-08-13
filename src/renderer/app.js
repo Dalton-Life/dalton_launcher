@@ -28,6 +28,8 @@ const DEFAULT_APP_VERSION = '0.1.0';
 let appVersion = DEFAULT_APP_VERSION;
 let updateInProgress = false;
 let pendingUpdateVersion = null;
+let resolveStartupUpdateCheck = null;
+const STARTUP_UPDATE_TIMEOUT_MS = 20000;
 const launcherInstallPathInput = document.getElementById('launcher-install-path');
 const btnInstallLauncher = document.getElementById('btn-install-launcher');
 const btnStartDalton = document.getElementById('btn-start-dalton');
@@ -768,6 +770,47 @@ function setUpdateOverlayProgress(percent) {
   progressValue.textContent = `${Math.round(safePercent)}%`;
 }
 
+function resolveStartupUpdateCheckIfNeeded() {
+  if (resolveStartupUpdateCheck) {
+    resolveStartupUpdateCheck();
+    resolveStartupUpdateCheck = null;
+  }
+}
+
+function waitForStartupUpdateCheck() {
+  return new Promise((resolve) => {
+    resolveStartupUpdateCheck = resolve;
+  });
+}
+
+function showStartupUpdateChecking() {
+  showUpdateOverlay({
+    title: 'BUSCANDO ACTUALIZACIONES',
+    message: 'Comprobando si hay una nueva versión...',
+    hint: 'Esto solo tardará unos segundos.',
+    mode: 'spinner'
+  });
+}
+
+async function runStartupUpdateCheck() {
+  if (!config?.packaged) {
+    return;
+  }
+
+  showStartupUpdateChecking();
+
+  const waitPromise = waitForStartupUpdateCheck();
+  await window.dalton.checkForUpdates({ startup: true });
+
+  await Promise.race([waitPromise, sleep(STARTUP_UPDATE_TIMEOUT_MS)]);
+
+  resolveStartupUpdateCheckIfNeeded();
+
+  if (!pendingUpdateVersion && !updateInProgress) {
+    hideUpdateOverlay();
+  }
+}
+
 function setupUpdaterListeners() {
   if (!window.dalton.onUpdaterEvent) {
     return () => {};
@@ -776,13 +819,16 @@ function setupUpdaterListeners() {
   return window.dalton.onUpdaterEvent((event) => {
     switch (event.type) {
       case 'checking':
-        if (event.manual) {
+        if (event.startup) {
+          showStartupUpdateChecking();
+        } else if (event.manual) {
           clearUpdateStatus();
           setManualUpdateChecking(true);
         }
         break;
       case 'available':
         setManualUpdateChecking(false);
+        resolveStartupUpdateCheckIfNeeded();
         showUpdateOverlay({
           title: 'ACTUALIZANDO',
           message: `Descargando v${formatUpdateVersion(event.version)}...`,
@@ -799,6 +845,7 @@ function setupUpdaterListeners() {
         break;
       case 'not-available':
         setManualUpdateChecking(false);
+        resolveStartupUpdateCheckIfNeeded();
         hideUpdateOverlay();
         if (event.manual) {
           setUpdateStatus('Ya tienes la última versión.', 'success');
@@ -806,6 +853,7 @@ function setupUpdaterListeners() {
         break;
       case 'error':
         setManualUpdateChecking(false);
+        resolveStartupUpdateCheckIfNeeded();
         hideUpdateOverlay();
         if (event.manual) {
           setUpdateStatus(event.message || 'No se pudo comprobar actualizaciones.', 'error');
@@ -858,6 +906,7 @@ async function bootstrap() {
   await sleep(2700);
 
   if (config.launcherInstalled) {
+    await runStartupUpdateCheck();
     await transitionToHome();
     syncDiscordPresence('idle');
     startServerStatusPolling();
