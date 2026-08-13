@@ -44,7 +44,9 @@ let pendingUpdateVersion = null;
 let pendingUpdateReleaseNotes = null;
 let pendingUpdateBannerVisible = false;
 let resolveStartupUpdateCheck = null;
+let toastActionHandler = null;
 const STARTUP_UPDATE_TIMEOUT_MS = 20000;
+const FIVEM_DOWNLOAD_URL = 'https://fivem.net/';
 const launcherInstallPathInput = document.getElementById('launcher-install-path');
 const btnInstallLauncher = document.getElementById('btn-install-launcher');
 const btnStartDalton = document.getElementById('btn-start-dalton');
@@ -187,7 +189,10 @@ function refreshPendingUpdateBadge() {
   pendingUpdateBanner.setAttribute('aria-hidden', showBanner ? 'false' : 'true');
 }
 
-function showUpdateToast(message, { type = 'error', retry = false } = {}) {
+function showUpdateToast(
+  message,
+  { type = 'error', retry = false, actionLabel = '', onAction = null } = {}
+) {
   if (!updateToast || !updateToastMessage) {
     return;
   }
@@ -195,12 +200,39 @@ function showUpdateToast(message, { type = 'error', retry = false } = {}) {
   updateToastMessage.textContent = message;
   updateToast.className = `update-toast update-toast--${type}`;
   updateToast.classList.remove('hidden');
-  btnUpdateToastRetry?.classList.toggle('hidden', !retry);
+
+  const hasCustomAction = Boolean(actionLabel && onAction);
+  toastActionHandler = hasCustomAction ? onAction : retry ? 'update-retry' : null;
+
+  if (btnUpdateToastRetry) {
+    btnUpdateToastRetry.textContent = hasCustomAction ? actionLabel : 'Reintentar';
+    btnUpdateToastRetry.classList.toggle('hidden', !retry && !hasCustomAction);
+  }
 }
 
 function hideUpdateToast() {
   updateToast?.classList.add('hidden');
   btnUpdateToastRetry?.classList.add('hidden');
+  toastActionHandler = null;
+}
+
+function isFiveMInstallError(message = '') {
+  return /fivem no está instalado/i.test(message);
+}
+
+function showLaunchError(message) {
+  const text = message?.trim() || 'No se pudo abrir FiveM. Inténtalo de nuevo.';
+
+  if (isFiveMInstallError(text)) {
+    showUpdateToast(text, {
+      type: 'error',
+      actionLabel: 'Descargar FiveM',
+      onAction: () => window.dalton.openExternal(FIVEM_DOWNLOAD_URL)
+    });
+    return;
+  }
+
+  showUpdateToast(text, { type: 'error' });
 }
 
 function setUpdateStatus(message, type = 'info') {
@@ -1225,6 +1257,7 @@ btnStartDalton.addEventListener('click', async () => {
   if (!result.ok) {
     launchPending = false;
     updateStartButton('idle');
+    showLaunchError(result.message);
     return;
   }
 
@@ -1245,7 +1278,7 @@ serverCard.addEventListener('animationend', (event) => {
 });
 
 document.getElementById('btn-open-fivem-site').addEventListener('click', () => {
-  window.dalton.openExternal('https://fivem.net/');
+  window.dalton.openExternal(FIVEM_DOWNLOAD_URL);
 });
 
 document.getElementById('btn-check-updates')?.addEventListener('click', async () => {
@@ -1298,8 +1331,17 @@ btnUpdateToastDismiss?.addEventListener('click', () => {
 });
 
 btnUpdateToastRetry?.addEventListener('click', async () => {
+  const handler = toastActionHandler;
   hideUpdateToast();
-  await window.dalton.checkForUpdates({ manual: true });
+
+  if (handler === 'update-retry') {
+    await window.dalton.checkForUpdates({ manual: true });
+    return;
+  }
+
+  if (typeof handler === 'function') {
+    handler();
+  }
 });
 
 document.getElementById('btn-clear-fivem-cache').addEventListener('click', async () => {
