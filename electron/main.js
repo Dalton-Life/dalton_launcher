@@ -19,6 +19,7 @@ const {
   isDiscordPresenceEnabled
 } = require('./discord-presence');
 const { loadEnv, getServerEnv } = require('./env');
+const { parseAllowedExternalUrl } = require('./safe-url');
 
 const projectRoot = path.join(__dirname, '..');
 
@@ -393,8 +394,15 @@ ipcMain.handle('launcher:update-artifacts', async () => ({
   message: 'Actualización de artifacts simulada.'
 }));
 
-ipcMain.handle('shell:open-external', (_event, url) => {
-  return shell.openExternal(url);
+ipcMain.handle('shell:open-external', async (_event, url) => {
+  const safeUrl = parseAllowedExternalUrl(url);
+
+  if (!safeUrl) {
+    return { ok: false, message: 'URL no permitida.' };
+  }
+
+  await shell.openExternal(safeUrl);
+  return { ok: true };
 });
 
 ipcMain.on('window:minimize', () => {
