@@ -246,10 +246,10 @@ ipcMain.handle('launcher:resolve-install-path', (_event, targetPath) => {
   const validation = validateInstallRoot(resolved, app);
 
   if (!validation.ok) {
-    return null;
+    return { ok: false, message: validation.message };
   }
 
-  return validation.installRoot;
+  return { ok: true, path: validation.installRoot };
 });
 
 ipcMain.handle('launcher:install', async (_event, options) => {

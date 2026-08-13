@@ -1158,8 +1158,17 @@ document.getElementById('btn-browse-launcher').addEventListener('click', async (
   const selected = await window.dalton.selectFolder();
   if (!selected) return;
 
-  const resolvedPath = await window.dalton.resolveInstallPath(selected);
-  await saveConfigPartial({ launcherInstallPath: resolvedPath });
+  const result = await window.dalton.resolveInstallPath(selected);
+
+  if (!result?.ok) {
+    setInstallStatus(
+      result?.message || 'No se pudo usar esa carpeta de instalación.',
+      config.launcherInstallPath
+    );
+    return;
+  }
+
+  await saveConfigPartial({ launcherInstallPath: result.path });
 });
 
 document.getElementById('mute-music').addEventListener('change', async (event) => {
