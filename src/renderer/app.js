@@ -312,9 +312,6 @@ function applyServerStatus(status) {
 }
 
 async function queryServerStatus() {
-  const ip = String(config?.serverIp || '').trim();
-  const port = Number(config?.serverPort) || 30120;
-
   if (!window.dalton?.getServerStatus) {
     return {
       online: false,
@@ -328,7 +325,7 @@ async function queryServerStatus() {
   };
 
   for (let attempt = 1; attempt <= SERVER_STATUS_MAX_ATTEMPTS; attempt += 1) {
-    const status = await window.dalton.getServerStatus(ip, port);
+    const status = await window.dalton.getServerStatus();
 
     if (status?.online) {
       return status;

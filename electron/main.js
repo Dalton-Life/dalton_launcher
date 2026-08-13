@@ -356,12 +356,9 @@ ipcMain.handle('fivem:show-cache-result', async (_event, result) => {
   });
 });
 
-ipcMain.handle('fivem:get-server-status', async (_event, payload = {}) => {
+ipcMain.handle('fivem:get-server-status', async () => {
   try {
-    const config = readNormalizedConfig();
-    const serverIp = payload.serverIp || config.serverIp;
-    const serverPort = payload.serverPort || config.serverPort;
-
+    const { serverIp, serverPort } = readNormalizedConfig();
     return await getServerStatus(serverIp, serverPort);
   } catch (error) {
     return {
