@@ -68,7 +68,12 @@ function initAutoUpdater(window) {
   });
 
   autoUpdater.on('update-available', (info) => {
-    send('available', { version: info.version, manual: manualCheck, startup: startupCheck });
+    send('available', {
+      version: info.version,
+      releaseNotes: info.releaseNotes,
+      manual: manualCheck,
+      startup: startupCheck
+    });
   });
 
   autoUpdater.on('update-not-available', () => {
@@ -87,7 +92,8 @@ function initAutoUpdater(window) {
 
   autoUpdater.on('update-downloaded', (info) => {
     manualCheck = false;
-    send('downloaded', { version: info.version });
+    startupCheck = false;
+    send('downloaded', { version: info.version, releaseNotes: info.releaseNotes });
   });
 
   autoUpdater.on('error', (error) => {

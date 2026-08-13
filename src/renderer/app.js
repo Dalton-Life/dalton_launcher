@@ -10,6 +10,8 @@ const updateSpinner = document.getElementById('update-spinner');
 const updateProgressRow = document.getElementById('update-progress-row');
 const installOverlay = document.getElementById('install-overlay');
 const updateMessage = document.getElementById('update-message');
+const updateSize = document.getElementById('update-size');
+const updateNotes = document.getElementById('update-notes');
 const installMessage = document.getElementById('install-message');
 const installProgressBar = document.getElementById('install-progress-bar');
 const installProgressValue = document.getElementById('install-progress-value');
@@ -24,10 +26,20 @@ const btnUpdateRestart = document.getElementById('btn-update-restart');
 const btnUpdateLater = document.getElementById('btn-update-later');
 const btnCheckUpdates = document.getElementById('btn-check-updates');
 const updateStatus = document.getElementById('update-status');
+const updateBadge = document.getElementById('update-badge');
+const pendingUpdateBanner = document.getElementById('pending-update-banner');
+const pendingUpdateBannerText = document.getElementById('pending-update-banner-text');
+const updateToast = document.getElementById('update-toast');
+const updateToastMessage = document.getElementById('update-toast-message');
+const btnUpdateToastRetry = document.getElementById('btn-update-toast-retry');
+const btnUpdateToastDismiss = document.getElementById('btn-update-toast-dismiss');
+const btnPendingUpdateRestart = document.getElementById('btn-pending-update-restart');
 const DEFAULT_APP_VERSION = '0.1.0';
 let appVersion = DEFAULT_APP_VERSION;
 let updateInProgress = false;
 let pendingUpdateVersion = null;
+let pendingUpdateReleaseNotes = null;
+let pendingUpdateBannerVisible = false;
 let resolveStartupUpdateCheck = null;
 const STARTUP_UPDATE_TIMEOUT_MS = 20000;
 const launcherInstallPathInput = document.getElementById('launcher-install-path');
@@ -73,6 +85,119 @@ function formatVersionLabel(version = appVersion) {
 function formatUpdateVersion(version) {
   const raw = String(version || '').trim().replace(/^v/i, '');
   return raw || formatDisplayVersion(appVersion);
+}
+
+function formatBytes(bytes) {
+  const value = Number(bytes) || 0;
+
+  if (value < 1024 * 1024) {
+    return `${(value / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatReleaseNotes(notes) {
+  if (!notes) {
+    return '';
+  }
+
+  const text = typeof notes === 'string'
+    ? notes
+    : Array.isArray(notes)
+      ? notes.map((entry) => (typeof entry === 'string' ? entry : entry?.note || '')).join('\n')
+      : '';
+
+  const trimmed = text.trim();
+
+  if (!trimmed) {
+    return '';
+  }
+
+  if (trimmed.length <= 280) {
+    return trimmed;
+  }
+
+  return `${trimmed.slice(0, 277)}...`;
+}
+
+function setUpdateNotes(notes, visible = true) {
+  if (!updateNotes) {
+    return;
+  }
+
+  const formatted = formatReleaseNotes(notes);
+
+  if (!visible || !formatted) {
+    updateNotes.textContent = '';
+    updateNotes.classList.add('hidden');
+    return;
+  }
+
+  updateNotes.textContent = formatted;
+  updateNotes.classList.remove('hidden');
+}
+
+function setUpdateSize(transferred, total) {
+  if (!updateSize) {
+    return;
+  }
+
+  const safeTotal = Number(total) || 0;
+  const safeTransferred = Number(transferred) || 0;
+
+  if (safeTotal <= 0) {
+    updateSize.textContent = '';
+    updateSize.classList.add('hidden');
+    return;
+  }
+
+  updateSize.textContent = `${formatBytes(safeTransferred)} / ${formatBytes(safeTotal)}`;
+  updateSize.classList.remove('hidden');
+}
+
+function clearUpdateSize() {
+  if (!updateSize) {
+    return;
+  }
+
+  updateSize.textContent = '';
+  updateSize.classList.add('hidden');
+}
+
+function refreshPendingUpdateBadge() {
+  const showBadge = Boolean(pendingUpdateVersion) && !updateInProgress;
+  updateBadge?.classList.toggle('hidden', !showBadge);
+  updateBadge?.setAttribute('aria-hidden', showBadge ? 'false' : 'true');
+
+  if (!pendingUpdateBanner || !pendingUpdateBannerText) {
+    return;
+  }
+
+  const showBanner = showBadge && pendingUpdateBannerVisible;
+
+  if (showBanner) {
+    pendingUpdateBannerText.textContent = `Actualización v${formatUpdateVersion(pendingUpdateVersion)} lista. Reinicia para instalarla.`;
+  }
+
+  pendingUpdateBanner.classList.toggle('hidden', !showBanner);
+  pendingUpdateBanner.setAttribute('aria-hidden', showBanner ? 'false' : 'true');
+}
+
+function showUpdateToast(message, { type = 'error', retry = false } = {}) {
+  if (!updateToast || !updateToastMessage) {
+    return;
+  }
+
+  updateToastMessage.textContent = message;
+  updateToast.className = `update-toast update-toast--${type}`;
+  updateToast.classList.remove('hidden');
+  btnUpdateToastRetry?.classList.toggle('hidden', !retry);
+}
+
+function hideUpdateToast() {
+  updateToast?.classList.add('hidden');
+  btnUpdateToastRetry?.classList.add('hidden');
 }
 
 function setUpdateStatus(message, type = 'info') {
@@ -749,12 +874,20 @@ function hideUpdateOverlay() {
   updateHint.textContent = 'No cierres el launcher.';
   progressBar.style.width = '0%';
   progressValue.textContent = '0%';
+  clearUpdateSize();
+  setUpdateNotes(null, false);
+  refreshPendingUpdateBadge();
 }
 
-function showUpdateReady(version) {
+function showUpdateReady(version, releaseNotes = pendingUpdateReleaseNotes) {
   pendingUpdateVersion = version;
+  pendingUpdateReleaseNotes = releaseNotes || pendingUpdateReleaseNotes;
+  pendingUpdateBannerVisible = false;
   refreshUpdateButton();
+  refreshPendingUpdateBadge();
   setUpdateOverlayProgress(100);
+  setUpdateNotes(pendingUpdateReleaseNotes, true);
+  clearUpdateSize();
   showUpdateOverlay({
     title: 'LISTO PARA REINICIAR',
     message: `La versión v${formatUpdateVersion(version)} está lista para instalar.`,
@@ -763,11 +896,12 @@ function showUpdateReady(version) {
   });
 }
 
-function setUpdateOverlayProgress(percent) {
+function setUpdateOverlayProgress(percent, transferred, total) {
   const safePercent = Math.min(100, Math.max(0, Number(percent) || 0));
 
   progressBar.style.width = `${safePercent}%`;
   progressValue.textContent = `${Math.round(safePercent)}%`;
+  setUpdateSize(transferred, total);
 }
 
 function resolveStartupUpdateCheckIfNeeded() {
@@ -783,32 +917,16 @@ function waitForStartupUpdateCheck() {
   });
 }
 
-function showStartupUpdateChecking() {
-  showUpdateOverlay({
-    title: 'BUSCANDO ACTUALIZACIONES',
-    message: 'Comprobando si hay una nueva versión...',
-    hint: 'Esto solo tardará unos segundos.',
-    mode: 'spinner'
-  });
-}
-
 async function runStartupUpdateCheck() {
   if (!config?.packaged) {
     return;
   }
 
-  showStartupUpdateChecking();
-
   const waitPromise = waitForStartupUpdateCheck();
-  await window.dalton.checkForUpdates({ startup: true });
+  void window.dalton.checkForUpdates({ startup: true });
 
   await Promise.race([waitPromise, sleep(STARTUP_UPDATE_TIMEOUT_MS)]);
-
   resolveStartupUpdateCheckIfNeeded();
-
-  if (!pendingUpdateVersion && !updateInProgress) {
-    hideUpdateOverlay();
-  }
 }
 
 function setupUpdaterListeners() {
@@ -819,29 +937,32 @@ function setupUpdaterListeners() {
   return window.dalton.onUpdaterEvent((event) => {
     switch (event.type) {
       case 'checking':
-        if (event.startup) {
-          showStartupUpdateChecking();
-        } else if (event.manual) {
+        if (event.manual) {
           clearUpdateStatus();
+          hideUpdateToast();
           setManualUpdateChecking(true);
         }
         break;
       case 'available':
         setManualUpdateChecking(false);
+        hideUpdateToast();
         resolveStartupUpdateCheckIfNeeded();
+        pendingUpdateReleaseNotes = event.releaseNotes || null;
+        setUpdateNotes(null, false);
+        clearUpdateSize();
         showUpdateOverlay({
           title: 'ACTUALIZANDO',
           message: `Descargando v${formatUpdateVersion(event.version)}...`,
           mode: 'progress'
         });
-        setUpdateOverlayProgress(0);
+        setUpdateOverlayProgress(0, 0, 0);
         break;
       case 'progress':
-        setUpdateOverlayProgress(event.percent);
+        setUpdateOverlayProgress(event.percent, event.transferred, event.total);
         break;
       case 'downloaded':
         setManualUpdateChecking(false);
-        showUpdateReady(event.version);
+        showUpdateReady(event.version, event.releaseNotes || pendingUpdateReleaseNotes);
         break;
       case 'not-available':
         setManualUpdateChecking(false);
@@ -857,6 +978,11 @@ function setupUpdaterListeners() {
         hideUpdateOverlay();
         if (event.manual) {
           setUpdateStatus(event.message || 'No se pudo comprobar actualizaciones.', 'error');
+        } else if (event.startup) {
+          showUpdateToast(event.message || 'No se pudo comprobar actualizaciones.', {
+            type: 'error',
+            retry: true
+          });
         }
         break;
       default:
@@ -899,6 +1025,7 @@ async function bootstrap() {
   config = await window.dalton.getConfig();
   applyConfigToUi();
   refreshUpdateButton();
+  refreshPendingUpdateBadge();
 
   window.daltonSounds.init(getAudioSettings());
   syncDiscordPresence('launcher');
@@ -906,8 +1033,8 @@ async function bootstrap() {
   await sleep(2700);
 
   if (config.launcherInstalled) {
-    await runStartupUpdateCheck();
     await transitionToHome();
+    void runStartupUpdateCheck();
     syncDiscordPresence('idle');
     startServerStatusPolling();
     startPlayStatePolling();
@@ -1104,6 +1231,8 @@ btnUpdateRestart?.addEventListener('click', async () => {
 
 btnUpdateLater?.addEventListener('click', () => {
   hideUpdateOverlay();
+  pendingUpdateBannerVisible = true;
+  refreshPendingUpdateBadge();
 
   if (pendingUpdateVersion) {
     setUpdateStatus(
@@ -1111,6 +1240,19 @@ btnUpdateLater?.addEventListener('click', () => {
       'info'
     );
   }
+});
+
+btnPendingUpdateRestart?.addEventListener('click', async () => {
+  await window.dalton.installUpdate();
+});
+
+btnUpdateToastDismiss?.addEventListener('click', () => {
+  hideUpdateToast();
+});
+
+btnUpdateToastRetry?.addEventListener('click', async () => {
+  hideUpdateToast();
+  await window.dalton.checkForUpdates({ manual: true });
 });
 
 document.getElementById('btn-clear-fivem-cache').addEventListener('click', async () => {

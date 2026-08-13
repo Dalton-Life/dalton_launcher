@@ -366,6 +366,24 @@ input {
   box-shadow: 0 0 0 2px rgb(28, 28, 28);
 }
 
+.update-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--PrimaryColor);
+  color: #1c1c1c;
+  font-family: var(--AkrobatBold), var(--font);
+  font-size: 0.62rem;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px rgb(28, 28, 28);
+}
+
 .icon-btn svg {
   width: 16px;
   height: 16px;
@@ -1180,6 +1198,100 @@ input {
   color: #ffb4b4;
   background: rgba(255, 52, 64, 0.12);
   border: 1px solid rgba(255, 52, 64, 0.35);
+}
+
+.update-size {
+  margin-top: 0.75rem !important;
+  font-family: var(--AkrobatSemiBold), var(--font);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  color: var(--PrimaryColor);
+}
+
+.update-notes {
+  margin-top: 1rem !important;
+  padding: 0.75rem;
+  max-height: 120px;
+  overflow: auto;
+  text-align: left;
+  white-space: pre-wrap;
+  font-family: var(--AkrobatRegular), var(--font);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+}
+
+.pending-update-banner {
+  position: absolute;
+  top: 42px;
+  left: 50%;
+  z-index: 12;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(640px, calc(100% - 2rem));
+  padding: 0.65rem 0.85rem;
+  background: rgba(28, 28, 28, 0.96);
+  border: 1px solid rgba(254, 254, 134, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.pending-update-banner span {
+  flex: 1;
+  font-family: var(--AkrobatRegular), var(--font);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.btn-primary--compact {
+  min-width: auto;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+
+.update-toast {
+  position: absolute;
+  right: 1rem;
+  bottom: 4.5rem;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: min(420px, calc(100% - 2rem));
+  padding: 0.75rem 0.85rem;
+  background: rgba(28, 28, 28, 0.98);
+  border: 1px solid rgba(255, 52, 64, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.update-toast--info {
+  border-color: var(--border);
+}
+
+.update-toast span {
+  flex: 1;
+  font-family: var(--AkrobatRegular), var(--font);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.update-toast__retry {
+  min-width: auto;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.68rem;
+}
+
+.update-toast__dismiss {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .update-spinner {

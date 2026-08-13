@@ -147,8 +147,9 @@
               <img src="../assets/bell-icon.svg" alt="" class="icon-btn__image icon-btn__image--bell" />
               <span class="notification-badge hidden" id="notification-badge" aria-hidden="true">0</span>
             </button>
-            <button class="icon-btn" id="btn-settings" title="Ajustes" aria-label="Ajustes">
+            <button class="icon-btn icon-btn--badge" id="btn-settings" title="Ajustes" aria-label="Ajustes">
               <img src="../assets/setting-icon.svg" alt="" class="icon-btn__image" />
+              <span class="update-badge hidden" id="update-badge" aria-hidden="true">!</span>
             </button>
             <button class="icon-btn" id="btn-minimize" title="Minimizar" aria-label="Minimizar">
               <img src="../assets/minimizar-icon.svg" alt="" class="icon-btn__image icon-btn__image--minimize" />
@@ -158,6 +159,23 @@
             </button>
           </div>
         </header>
+
+        <div id="pending-update-banner" class="pending-update-banner hidden" role="status" aria-live="polite">
+          <span id="pending-update-banner-text">Hay una actualización lista para instalar.</span>
+          <button class="btn-primary btn-primary--compact" id="btn-pending-update-restart" type="button">
+            Reiniciar
+          </button>
+        </div>
+
+        <div id="update-toast" class="update-toast hidden" role="status" aria-live="polite">
+          <span id="update-toast-message"></span>
+          <button class="btn-secondary update-toast__retry hidden" id="btn-update-toast-retry" type="button">
+            Reintentar
+          </button>
+          <button class="icon-btn update-toast__dismiss" id="btn-update-toast-dismiss" type="button" aria-label="Cerrar">
+            ×
+          </button>
+        </div>
 
         <main class="home-main">
           <div class="brand-block">
@@ -241,6 +259,8 @@
           <div class="update-card">
             <h2 id="update-title" class="glitch" data-text="ACTUALIZANDO">ACTUALIZANDO</h2>
             <p id="update-message">Descargando componentes...</p>
+            <p id="update-size" class="update-size hidden"></p>
+            <p id="update-notes" class="update-notes hidden"></p>
             <div id="update-spinner" class="update-spinner hidden" aria-hidden="true"></div>
             <div id="update-progress-row" class="progress-row">
               <div class="progress-track">
