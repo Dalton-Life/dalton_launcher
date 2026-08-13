@@ -18,19 +18,51 @@ const {
 } = require('./discord-presence');
 const { loadEnv, getServerEnv } = require('./env');
 const { parseAllowedExternalUrl } = require('./safe-url');
-const { getAppVersion } = require('./version');
 const {
   initAutoUpdater,
   checkForUpdates,
   quitAndInstall
 } = require('./auto-updater');
+const { lockRendererNavigation } = require('./secure-window');
+const { createIpcTrust } = require('./ipc-trust');
+const {
+  configureAppPaths,
+  configureSingleInstance,
+  configureWindowsIdentity,
+  attachRendererRecovery
+} = require('./app-lifecycle');
 
 const projectRoot = path.join(__dirname, '..');
+const rendererRoot = path.join(projectRoot, 'src');
+const indexHtmlPath = path.join(rendererRoot, 'index.html');
 
 loadEnv(projectRoot);
+configureWindowsIdentity();
+configureAppPaths();
 
 const isDev = process.argv.includes('--enable-logging');
 let mainWindow = null;
+
+const { trustedHandle, trustedOn } = createIpcTrust(() => mainWindow);
+
+if (
+  !configureSingleInstance({
+    onSecondInstance() {
+      if (!mainWindow || mainWindow.isDestroyed()) {
+        return;
+      }
+
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  })
+) {
+  process.exit(0);
+}
 
 const iconPath = path.join(__dirname, '../assets/icon.ico');
 
@@ -166,11 +198,19 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false
+      sandbox: true
     }
   });
 
-  mainWindow.loadFile(path.join(__dirname, '../src/index.html'));
+  lockRendererNavigation(mainWindow.webContents, rendererRoot);
+  attachRendererRecovery(mainWindow.webContents, () => {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      return;
+    }
+
+    mainWindow.loadFile(indexHtmlPath);
+  });
+  mainWindow.loadFile(indexHtmlPath);
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
@@ -186,10 +226,6 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
-  if (process.platform === 'win32') {
-    app.setAppUserModelId('com.dalton.launcher');
-  }
-
   createWindow();
   initAutoUpdater(mainWindow);
 
@@ -212,29 +248,29 @@ app.on('activate', () => {
   }
 });
 
-ipcMain.handle('app:get-version', () => getAppVersion(app));
+trustedHandle(ipcMain, 'app:get-version', () => app.getVersion());
 
-ipcMain.handle('app:relaunch', () => {
+trustedHandle(ipcMain, 'app:relaunch', () => {
   app.relaunch();
   app.exit(0);
   return { ok: true };
 });
 
-ipcMain.handle('updater:check', (_event, options) => checkForUpdates(options || {}));
+trustedHandle(ipcMain, 'updater:check', (_event, options) => checkForUpdates(options || {}));
 
-ipcMain.handle('updater:install', () => {
+trustedHandle(ipcMain, 'updater:install', () => {
   quitAndInstall();
   return { ok: true };
 });
 
-ipcMain.handle('config:get', () => ({
+trustedHandle(ipcMain, 'config:get', () => ({
   ...readNormalizedConfig(),
   packaged: app.isPackaged
 }));
 
-ipcMain.handle('config:set', async (_event, partial) => writeNormalizedConfig(partial));
+trustedHandle(ipcMain, 'config:set', async (_event, partial) => writeNormalizedConfig(partial));
 
-ipcMain.handle('dialog:select-folder', async () => {
+trustedHandle(ipcMain, 'dialog:select-folder', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openDirectory', 'createDirectory']
   });
@@ -246,7 +282,7 @@ ipcMain.handle('dialog:select-folder', async () => {
   return result.filePaths[0];
 });
 
-ipcMain.handle('launcher:resolve-install-path', (_event, targetPath) => {
+trustedHandle(ipcMain, 'launcher:resolve-install-path', (_event, targetPath) => {
   const resolved = resolveInstallRoot(targetPath || getDefaultLauncherInstallPath(app), app);
   const validation = validateInstallRoot(resolved, app);
 
@@ -257,7 +293,7 @@ ipcMain.handle('launcher:resolve-install-path', (_event, targetPath) => {
   return { ok: true, path: validation.installRoot };
 });
 
-ipcMain.handle('launcher:install', async (_event, options) => {
+trustedHandle(ipcMain, 'launcher:install', async (_event, options) => {
   try {
     const targetPath = options?.installPath || readNormalizedConfig().launcherInstallPath;
     const createDesktopShortcut = Boolean(options?.createDesktopShortcut);
@@ -280,7 +316,7 @@ ipcMain.handle('launcher:install', async (_event, options) => {
       };
     }
 
-    const next = writeNormalizedConfig({
+    const next = await writeNormalizedConfig({
       ...installResult,
       installPath: installResult.serverInstallPath
     });
@@ -302,7 +338,7 @@ ipcMain.handle('launcher:install', async (_event, options) => {
   }
 });
 
-ipcMain.handle('launcher:start-dalton-life', async () => {
+trustedHandle(ipcMain, 'launcher:start-dalton-life', async () => {
   const config = readNormalizedConfig();
 
   if (!config.launcherInstalled) {
@@ -329,11 +365,11 @@ ipcMain.handle('launcher:start-dalton-life', async () => {
   }
 });
 
-ipcMain.handle('fivem:is-installed', () => isFiveMInstalled(getFiveMOptions()));
+trustedHandle(ipcMain, 'fivem:is-installed', () => isFiveMInstalled(getFiveMOptions()));
 
-ipcMain.handle('fivem:get-play-state', () => getFiveMPlayState());
+trustedHandle(ipcMain, 'fivem:get-play-state', () => getFiveMPlayState());
 
-ipcMain.handle('fivem:confirm-clear-cache', async () => {
+trustedHandle(ipcMain, 'fivem:confirm-clear-cache', async () => {
   const confirm = await dialog.showMessageBox(mainWindow, {
     type: 'warning',
     buttons: ['Cancelar', 'Borrar caché'],
@@ -349,9 +385,9 @@ ipcMain.handle('fivem:confirm-clear-cache', async () => {
   return confirm.response === 1;
 });
 
-ipcMain.handle('fivem:clear-cache', async () => clearFiveMCache(getFiveMOptions()));
+trustedHandle(ipcMain, 'fivem:clear-cache', async () => clearFiveMCache(getFiveMOptions()));
 
-ipcMain.handle('fivem:show-cache-result', async (_event, result) => {
+trustedHandle(ipcMain, 'fivem:show-cache-result', async (_event, result) => {
   if (!result?.message) {
     return;
   }
@@ -364,7 +400,7 @@ ipcMain.handle('fivem:show-cache-result', async (_event, result) => {
   });
 });
 
-ipcMain.handle('fivem:get-server-status', async () => {
+trustedHandle(ipcMain, 'fivem:get-server-status', async () => {
   try {
     const { serverIp, serverPort } = readNormalizedConfig();
     return await getServerStatus(serverIp, serverPort);
@@ -376,14 +412,14 @@ ipcMain.handle('fivem:get-server-status', async () => {
   }
 });
 
-ipcMain.handle('news:get', () => getNews(projectRoot));
+trustedHandle(ipcMain, 'news:get', () => getNews(projectRoot));
 
-ipcMain.handle('discord:sync', async (_event, state = 'idle') => {
+trustedHandle(ipcMain, 'discord:sync', async (_event, state = 'idle') => {
   const ok = await syncDiscordPresence(state);
   return { ok };
 });
 
-ipcMain.handle('shell:open-external', async (_event, url) => {
+trustedHandle(ipcMain, 'shell:open-external', async (_event, url) => {
   const safeUrl = parseAllowedExternalUrl(url);
 
   if (!safeUrl) {
@@ -394,10 +430,10 @@ ipcMain.handle('shell:open-external', async (_event, url) => {
   return { ok: true };
 });
 
-ipcMain.on('window:minimize', () => {
+trustedOn(ipcMain, 'window:minimize', () => {
   mainWindow?.minimize();
 });
 
-ipcMain.on('window:close', () => {
+trustedOn(ipcMain, 'window:close', () => {
   mainWindow?.close();
 });

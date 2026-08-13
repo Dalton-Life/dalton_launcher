@@ -1,43 +1,51 @@
-const splashView = document.getElementById('splash-view');
-const installView = document.getElementById('install-view');
-const homeView = document.getElementById('home-view');
-const settingsPanel = document.getElementById('settings-panel');
-const notificationsPanel = document.getElementById('notifications-panel');
-const updateOverlay = document.getElementById('update-overlay');
-const updateTitle = document.getElementById('update-title');
-const updateHint = document.getElementById('update-hint');
-const updateSpinner = document.getElementById('update-spinner');
-const updateProgressRow = document.getElementById('update-progress-row');
-const installOverlay = document.getElementById('install-overlay');
-const updateMessage = document.getElementById('update-message');
-const updateSize = document.getElementById('update-size');
-const updateNotes = document.getElementById('update-notes');
-const installMessage = document.getElementById('install-message');
-const installProgressBar = document.getElementById('install-progress-bar');
-const installProgressValue = document.getElementById('install-progress-value');
-const installStatusLabel = document.getElementById('install-status-label');
-const installStatusPath = document.getElementById('install-status-path');
-const footerVersion = document.getElementById('footer-version');
-const installFooterVersion = document.getElementById('install-footer-version');
-const progressBar = document.getElementById('progress-bar');
-const progressValue = document.getElementById('progress-value');
-const updateActionsRow = document.getElementById('update-actions-row');
-const btnUpdateRestart = document.getElementById('btn-update-restart');
-const btnUpdateLater = document.getElementById('btn-update-later');
-const btnCheckUpdates = document.getElementById('btn-check-updates');
-const updateStatus = document.getElementById('update-status');
-const updateFeedbackActions = document.getElementById('update-feedback-actions');
-const btnRetryUpdates = document.getElementById('btn-retry-updates');
-const btnRelaunchLauncher = document.getElementById('btn-relaunch-launcher');
-const updateBadge = document.getElementById('update-badge');
-const pendingUpdateBanner = document.getElementById('pending-update-banner');
-const pendingUpdateBannerText = document.getElementById('pending-update-banner-text');
-const updateToast = document.getElementById('update-toast');
-const updateToastMessage = document.getElementById('update-toast-message');
-const btnUpdateToastRetry = document.getElementById('btn-update-toast-retry');
-const btnUpdateToastDismiss = document.getElementById('btn-update-toast-dismiss');
-const btnPendingUpdateRestart = document.getElementById('btn-pending-update-restart');
-const DEFAULT_APP_VERSION = window.dalton?.packageVersion || '0.0.0';
+const splashView = document.getElementById("splash-view");
+const installView = document.getElementById("install-view");
+const homeView = document.getElementById("home-view");
+const settingsPanel = document.getElementById("settings-panel");
+const notificationsPanel = document.getElementById("notifications-panel");
+const updateOverlay = document.getElementById("update-overlay");
+const updateTitle = document.getElementById("update-title");
+const updateHint = document.getElementById("update-hint");
+const updateSpinner = document.getElementById("update-spinner");
+const updateProgressRow = document.getElementById("update-progress-row");
+const installOverlay = document.getElementById("install-overlay");
+const updateMessage = document.getElementById("update-message");
+const updateSize = document.getElementById("update-size");
+const updateNotes = document.getElementById("update-notes");
+const installMessage = document.getElementById("install-message");
+const installProgressBar = document.getElementById("install-progress-bar");
+const installProgressValue = document.getElementById("install-progress-value");
+const installStatusLabel = document.getElementById("install-status-label");
+const installStatusPath = document.getElementById("install-status-path");
+const footerVersion = document.getElementById("footer-version");
+const installFooterVersion = document.getElementById("install-footer-version");
+const progressBar = document.getElementById("progress-bar");
+const progressValue = document.getElementById("progress-value");
+const updateActionsRow = document.getElementById("update-actions-row");
+const btnUpdateRestart = document.getElementById("btn-update-restart");
+const btnUpdateLater = document.getElementById("btn-update-later");
+const btnCheckUpdates = document.getElementById("btn-check-updates");
+const updateStatus = document.getElementById("update-status");
+const updateFeedbackActions = document.getElementById(
+  "update-feedback-actions",
+);
+const btnRetryUpdates = document.getElementById("btn-retry-updates");
+const btnRelaunchLauncher = document.getElementById("btn-relaunch-launcher");
+const updateBadge = document.getElementById("update-badge");
+const pendingUpdateBanner = document.getElementById("pending-update-banner");
+const pendingUpdateBannerText = document.getElementById(
+  "pending-update-banner-text",
+);
+const updateToast = document.getElementById("update-toast");
+const updateToastMessage = document.getElementById("update-toast-message");
+const btnUpdateToastRetry = document.getElementById("btn-update-toast-retry");
+const btnUpdateToastDismiss = document.getElementById(
+  "btn-update-toast-dismiss",
+);
+const btnPendingUpdateRestart = document.getElementById(
+  "btn-pending-update-restart",
+);
+const DEFAULT_APP_VERSION = "0.0.0";
 let appVersion = DEFAULT_APP_VERSION;
 let updateInProgress = false;
 let pendingUpdateVersion = null;
@@ -46,52 +54,54 @@ let pendingUpdateBannerVisible = false;
 let resolveStartupUpdateCheck = null;
 let toastActionHandler = null;
 const STARTUP_UPDATE_TIMEOUT_MS = 20000;
-const FIVEM_DOWNLOAD_URL = 'https://fivem.net/';
+const FIVEM_DOWNLOAD_URL = "https://fivem.net/";
 const SOCIAL_LINKS = [
   {
-    url: 'https://discord.gg/g2wYRtqphT',
-    title: 'Discord',
-    label: 'Discord',
-    icon: '../assets/discord-icon.svg'
+    url: "https://discord.gg/g2wYRtqphT",
+    title: "Discord",
+    label: "Discord",
+    icon: "../assets/discord-icon.svg",
   },
   {
-    url: 'https://www.tiktok.com/@daltonliferp',
-    title: 'TikTok',
-    label: 'TikTok',
-    icon: '../assets/tiktok-icon.svg'
+    url: "https://www.tiktok.com/@daltonliferp",
+    title: "TikTok",
+    label: "TikTok",
+    icon: "../assets/tiktok-icon.svg",
   },
   {
-    url: 'https://www.instagram.com/daltonxlife/',
-    title: 'Instagram',
-    label: 'Instagram',
-    icon: '../assets/instagram-icon.svg'
+    url: "https://www.instagram.com/daltonxlife/",
+    title: "Instagram",
+    label: "Instagram",
+    icon: "../assets/instagram-icon.svg",
   },
   {
-    url: 'https://store.daltonxlife.org/',
-    title: 'Página web',
-    label: 'Página web',
-    icon: '../assets/web-icon.svg'
-  }
+    url: "https://store.daltonxlife.org/",
+    title: "Página web",
+    label: "Página web",
+    icon: "../assets/web-icon.svg",
+  },
 ];
-const launcherInstallPathInput = document.getElementById('launcher-install-path');
-const btnInstallLauncher = document.getElementById('btn-install-launcher');
-const btnStartDalton = document.getElementById('btn-start-dalton');
-const serverStatusDot = document.getElementById('server-status-dot');
-const serverStatusText = document.getElementById('server-status-text');
-const serverPlayers = document.getElementById('server-players');
-const serverPing = document.getElementById('server-ping');
-const serverHostname = document.getElementById('server-hostname');
-const serverCard = document.getElementById('server-card');
-const notificationsList = document.getElementById('notifications-list');
-const notificationBadge = document.getElementById('notification-badge');
-const musicVolumeInput = document.getElementById('music-volume');
-const musicVolumeValue = document.getElementById('music-volume-value');
+const launcherInstallPathInput = document.getElementById(
+  "launcher-install-path",
+);
+const btnInstallLauncher = document.getElementById("btn-install-launcher");
+const btnStartDalton = document.getElementById("btn-start-dalton");
+const serverStatusDot = document.getElementById("server-status-dot");
+const serverStatusText = document.getElementById("server-status-text");
+const serverPlayers = document.getElementById("server-players");
+const serverPing = document.getElementById("server-ping");
+const serverHostname = document.getElementById("server-hostname");
+const serverCard = document.getElementById("server-card");
+const notificationsList = document.getElementById("notifications-list");
+const notificationBadge = document.getElementById("notification-badge");
+const musicVolumeInput = document.getElementById("music-volume");
+const musicVolumeValue = document.getElementById("music-volume-value");
 
 let config = null;
 let serverStatusTimer = null;
 let playStateTimer = null;
 let launchPending = false;
-let currentPlayState = 'idle';
+let currentPlayState = "idle";
 let fivemOpenedDuringConnect = false;
 let lastServerOnlineState = null;
 let hasDisplayedServerStatus = false;
@@ -109,7 +119,7 @@ const SPLASH_DELAY_MS = 2700;
 const SPLASH_DELAY_REDUCED_MS = 400;
 
 function prefersReducedMotion() {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 function getSplashDelayMs() {
@@ -127,27 +137,32 @@ function waitForViewExitAnimation(animatedView, onFinish) {
 
       finished = true;
       clearTimeout(timeoutId);
-      animatedView.removeEventListener('animationend', onAnimationEnd);
+      animatedView.removeEventListener("animationend", onAnimationEnd);
       onFinish();
       resolve();
     };
 
     const onAnimationEnd = (event) => {
-      if (event.target !== animatedView || event.animationName !== 'splash-view-out') {
+      if (
+        event.target !== animatedView ||
+        event.animationName !== "splash-view-out"
+      ) {
         return;
       }
 
       finish();
     };
 
-    animatedView.addEventListener('animationend', onAnimationEnd);
+    animatedView.addEventListener("animationend", onAnimationEnd);
     const timeoutMs = prefersReducedMotion() ? 50 : SPLASH_EXIT_TIMEOUT_MS;
     const timeoutId = setTimeout(finish, timeoutMs);
   });
 }
 
 function formatDisplayVersion(version, fallback = DEFAULT_APP_VERSION) {
-  const raw = String(version || fallback).trim().replace(/^v/i, '');
+  const raw = String(version || fallback)
+    .trim()
+    .replace(/^v/i, "");
   return raw || fallback;
 }
 
@@ -171,19 +186,24 @@ function formatBytes(bytes) {
 
 function formatReleaseNotes(notes) {
   if (!notes) {
-    return '';
+    return "";
   }
 
-  const text = typeof notes === 'string'
-    ? notes
-    : Array.isArray(notes)
-      ? notes.map((entry) => (typeof entry === 'string' ? entry : entry?.note || '')).join('\n')
-      : '';
+  const text =
+    typeof notes === "string"
+      ? notes
+      : Array.isArray(notes)
+        ? notes
+            .map((entry) =>
+              typeof entry === "string" ? entry : entry?.note || "",
+            )
+            .join("\n")
+        : "";
 
   const trimmed = text.trim();
 
   if (!trimmed) {
-    return '';
+    return "";
   }
 
   if (trimmed.length <= 280) {
@@ -201,13 +221,13 @@ function setUpdateNotes(notes, visible = true) {
   const formatted = formatReleaseNotes(notes);
 
   if (!visible || !formatted) {
-    updateNotes.textContent = '';
-    updateNotes.classList.add('hidden');
+    updateNotes.textContent = "";
+    updateNotes.classList.add("hidden");
     return;
   }
 
   updateNotes.textContent = formatted;
-  updateNotes.classList.remove('hidden');
+  updateNotes.classList.remove("hidden");
 }
 
 function setUpdateSize(transferred, total) {
@@ -219,13 +239,13 @@ function setUpdateSize(transferred, total) {
   const safeTransferred = Number(transferred) || 0;
 
   if (safeTotal <= 0) {
-    updateSize.textContent = '';
-    updateSize.classList.add('hidden');
+    updateSize.textContent = "";
+    updateSize.classList.add("hidden");
     return;
   }
 
   updateSize.textContent = `${formatBytes(safeTransferred)} / ${formatBytes(safeTotal)}`;
-  updateSize.classList.remove('hidden');
+  updateSize.classList.remove("hidden");
 }
 
 function clearUpdateSize() {
@@ -233,14 +253,14 @@ function clearUpdateSize() {
     return;
   }
 
-  updateSize.textContent = '';
-  updateSize.classList.add('hidden');
+  updateSize.textContent = "";
+  updateSize.classList.add("hidden");
 }
 
 function refreshPendingUpdateBadge() {
   const showBadge = Boolean(pendingUpdateVersion) && !updateInProgress;
-  updateBadge?.classList.toggle('hidden', !showBadge);
-  updateBadge?.setAttribute('aria-hidden', showBadge ? 'false' : 'true');
+  updateBadge?.classList.toggle("hidden", !showBadge);
+  updateBadge?.setAttribute("aria-hidden", showBadge ? "false" : "true");
 
   if (!pendingUpdateBanner || !pendingUpdateBannerText) {
     return;
@@ -252,13 +272,16 @@ function refreshPendingUpdateBadge() {
     pendingUpdateBannerText.textContent = `Actualización v${formatUpdateVersion(pendingUpdateVersion)} lista. Reinicia para instalarla.`;
   }
 
-  pendingUpdateBanner.classList.toggle('hidden', !showBanner);
-  pendingUpdateBanner.setAttribute('aria-hidden', showBanner ? 'false' : 'true');
+  pendingUpdateBanner.classList.toggle("hidden", !showBanner);
+  pendingUpdateBanner.setAttribute(
+    "aria-hidden",
+    showBanner ? "false" : "true",
+  );
 }
 
 function showUpdateToast(
   message,
-  { type = 'error', retry = false, actionLabel = '', onAction = null } = {}
+  { type = "error", retry = false, actionLabel = "", onAction = null } = {},
 ) {
   if (!updateToast || !updateToastMessage) {
     return;
@@ -266,72 +289,81 @@ function showUpdateToast(
 
   updateToastMessage.textContent = message;
   updateToast.className = `update-toast update-toast--${type}`;
-  updateToast.classList.remove('hidden');
+  updateToast.classList.remove("hidden");
 
   const hasCustomAction = Boolean(actionLabel && onAction);
-  toastActionHandler = hasCustomAction ? onAction : retry ? 'update-retry' : null;
+  toastActionHandler = hasCustomAction
+    ? onAction
+    : retry
+      ? "update-retry"
+      : null;
 
   if (btnUpdateToastRetry) {
-    btnUpdateToastRetry.textContent = hasCustomAction ? actionLabel : 'Reintentar';
-    btnUpdateToastRetry.classList.toggle('hidden', !retry && !hasCustomAction);
+    btnUpdateToastRetry.textContent = hasCustomAction
+      ? actionLabel
+      : "Reintentar";
+    btnUpdateToastRetry.classList.toggle("hidden", !retry && !hasCustomAction);
   }
 }
 
 function hideUpdateToast() {
-  updateToast?.classList.add('hidden');
-  btnUpdateToastRetry?.classList.add('hidden');
+  updateToast?.classList.add("hidden");
+  btnUpdateToastRetry?.classList.add("hidden");
   toastActionHandler = null;
 }
 
-function isFiveMInstallError(message = '') {
+function isFiveMInstallError(message = "") {
   return /fivem no está instalado/i.test(message);
 }
 
 function showLaunchError(message) {
-  const text = message?.trim() || 'No se pudo abrir FiveM. Inténtalo de nuevo.';
+  const text = message?.trim() || "No se pudo abrir FiveM. Inténtalo de nuevo.";
 
   if (isFiveMInstallError(text)) {
     showUpdateToast(text, {
-      type: 'error',
-      actionLabel: 'Descargar FiveM',
-      onAction: () => window.dalton.openExternal(FIVEM_DOWNLOAD_URL)
+      type: "error",
+      actionLabel: "Descargar FiveM",
+      onAction: () => window.dalton.openExternal(FIVEM_DOWNLOAD_URL),
     });
     return;
   }
 
-  showUpdateToast(text, { type: 'error' });
+  showUpdateToast(text, { type: "error" });
 }
 
-function setUpdateStatus(message, type = 'info') {
+function setUpdateStatus(message, type = "info") {
   if (!updateStatus) {
     return;
   }
 
   updateStatus.textContent = message;
   updateStatus.className = `update-status update-status--${type}`;
-  updateStatus.classList.remove('hidden');
+  updateStatus.classList.remove("hidden");
 }
 
-function setUpdateFeedbackActions({ showRetry = false, showRelaunch = false } = {}) {
+function setUpdateFeedbackActions({
+  showRetry = false,
+  showRelaunch = false,
+} = {}) {
   const visible = showRetry || showRelaunch;
-  updateFeedbackActions?.classList.toggle('hidden', !visible);
-  btnRetryUpdates?.classList.toggle('hidden', !showRetry);
-  btnRelaunchLauncher?.classList.toggle('hidden', !showRelaunch);
+  updateFeedbackActions?.classList.toggle("hidden", !visible);
+  btnRetryUpdates?.classList.toggle("hidden", !showRetry);
+  btnRelaunchLauncher?.classList.toggle("hidden", !showRelaunch);
 }
 
 function showUpdateError(message, { manual = false, startup = false } = {}) {
   if (manual) {
-    setUpdateStatus(message, 'error');
+    setUpdateStatus(message, "error");
     setUpdateFeedbackActions({ showRetry: true, showRelaunch: true });
   }
 
   if (manual || startup) {
-    showUpdateToast(message, { type: 'error', retry: true });
+    showUpdateToast(message, { type: "error", retry: true });
   }
 }
 
 function clearUpdateStatus() {
-  updateStatus?.classList.add('hidden');
+  updateStatus?.classList.add("hidden");
   setUpdateFeedbackActions();
 }
 
@@ -341,8 +373,8 @@ function refreshUpdateButton() {
   }
 
   btnCheckUpdates.textContent = pendingUpdateVersion
-    ? 'Reiniciar para actualizar'
-    : 'Buscar actualizaciones';
+    ? "Reiniciar para actualizar"
+    : "Buscar actualizaciones";
 }
 
 function setManualUpdateChecking(isChecking) {
@@ -351,7 +383,9 @@ function setManualUpdateChecking(isChecking) {
   }
 
   btnCheckUpdates.disabled = isChecking;
-  btnCheckUpdates.textContent = isChecking ? 'Buscando...' : 'Buscar actualizaciones';
+  btnCheckUpdates.textContent = isChecking
+    ? "Buscando..."
+    : "Buscar actualizaciones";
 }
 
 function clampVolumePercent(value, fallback = 22) {
@@ -374,7 +408,7 @@ function getAudioSettings() {
   return {
     muteButtonSounds: isButtonSoundsMuted(),
     muteBackgroundMusic: isBackgroundMusicMuted(),
-    backgroundMusicVolume: getBackgroundMusicVolume()
+    backgroundMusicVolume: getBackgroundMusicVolume(),
   };
 }
 
@@ -382,7 +416,10 @@ function updateMusicVolumeUi(volume = getBackgroundMusicVolume()) {
   musicVolumeInput.value = String(volume);
   musicVolumeValue.textContent = `${volume}%`;
   musicVolumeInput.disabled = isBackgroundMusicMuted();
-  musicVolumeInput.classList.toggle('settings-range--disabled', isBackgroundMusicMuted());
+  musicVolumeInput.classList.toggle(
+    "settings-range--disabled",
+    isBackgroundMusicMuted(),
+  );
 }
 
 function refreshAudioSettings() {
@@ -410,25 +447,25 @@ function renderSocialLinks() {
       >
         <img src="${link.icon}" alt="" class="social-btn__icon" />
       </button>
-    `
-  ).join('');
+    `,
+  ).join("");
 
-  document.querySelectorAll('.social-links').forEach((container) => {
+  document.querySelectorAll(".social-links").forEach((container) => {
     container.innerHTML = markup;
   });
 }
 
 function setupSidePanelKeyboard() {
-  document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape') {
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") {
       return;
     }
 
-    if (settingsPanel.classList.contains('is-open')) {
+    if (settingsPanel.classList.contains("is-open")) {
       toggleSettings(false);
     }
 
-    if (notificationsPanel.classList.contains('is-open')) {
+    if (notificationsPanel.classList.contains("is-open")) {
       toggleNotifications(false);
     }
   });
@@ -444,7 +481,9 @@ async function checkFiveMInstalledOnHome() {
 
     if (!installed) {
       fivemInstallWarningShown = true;
-      showLaunchError('FiveM no está instalado. Instálalo desde fivem.net para poder jugar.');
+      showLaunchError(
+        "FiveM no está instalado. Instálalo desde fivem.net para poder jugar.",
+      );
     }
   } catch {
     // ignore detection errors
@@ -455,18 +494,20 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function setInstallStatus(label, pathText = '') {
+function setInstallStatus(label, pathText = "") {
   installStatusLabel.textContent = label;
-  installStatusPath.textContent = pathText ? `DIR: ${pathText.toUpperCase()}` : '';
+  installStatusPath.textContent = pathText
+    ? `DIR: ${pathText.toUpperCase()}`
+    : "";
 }
 
 function transitionFromSplash(targetView) {
-  targetView.classList.add('view--active', 'home-enter');
-  splashView.classList.add('splash-exit');
+  targetView.classList.add("view--active", "home-enter");
+  splashView.classList.add("splash-exit");
 
   return waitForViewExitAnimation(splashView, () => {
-    splashView.classList.remove('view--active', 'splash-exit');
-    targetView.classList.remove('home-enter');
+    splashView.classList.remove("view--active", "splash-exit");
+    targetView.classList.remove("home-enter");
   });
 }
 
@@ -479,12 +520,12 @@ function transitionToInstall() {
 }
 
 function transitionInstallToHome() {
-  installView.classList.add('splash-exit');
-  homeView.classList.add('view--active', 'home-enter');
+  installView.classList.add("splash-exit");
+  homeView.classList.add("view--active", "home-enter");
 
   return waitForViewExitAnimation(installView, () => {
-    installView.classList.remove('view--active', 'splash-exit');
-    homeView.classList.remove('home-enter');
+    installView.classList.remove("view--active", "splash-exit");
+    homeView.classList.remove("home-enter");
   });
 }
 
@@ -498,7 +539,8 @@ function isBlockingOverlayActive() {
     return true;
   }
 
-  const isVisible = (element) => element && !element.classList.contains('hidden');
+  const isVisible = (element) =>
+    element && !element.classList.contains("hidden");
 
   return isVisible(updateOverlay) || isVisible(installOverlay);
 }
@@ -512,8 +554,8 @@ function toggleSettings(open) {
     toggleNotifications(false);
   }
 
-  settingsPanel.classList.toggle('is-open', open);
-  settingsPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
+  settingsPanel.classList.toggle("is-open", open);
+  settingsPanel.setAttribute("aria-hidden", open ? "false" : "true");
 }
 
 function toggleNotifications(open) {
@@ -525,8 +567,8 @@ function toggleNotifications(open) {
     toggleSettings(false);
   }
 
-  notificationsPanel.classList.toggle('is-open', open);
-  notificationsPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
+  notificationsPanel.classList.toggle("is-open", open);
+  notificationsPanel.setAttribute("aria-hidden", open ? "false" : "true");
 
   if (open) {
     markAllNotificationsRead();
@@ -534,7 +576,7 @@ function toggleNotifications(open) {
 }
 
 function getNotificationId(item) {
-  return String(item?.id || item?.title || '');
+  return String(item?.id || item?.title || "");
 }
 
 function getUnreadNotifications(items = notificationItems) {
@@ -551,15 +593,15 @@ function updateNotificationBadge() {
   const count = getUnreadNotifications().length;
 
   if (count <= 0) {
-    notificationBadge.classList.add('hidden');
-    notificationBadge.setAttribute('aria-hidden', 'true');
-    notificationBadge.textContent = '0';
+    notificationBadge.classList.add("hidden");
+    notificationBadge.setAttribute("aria-hidden", "true");
+    notificationBadge.textContent = "0";
     return;
   }
 
-  notificationBadge.classList.remove('hidden');
-  notificationBadge.setAttribute('aria-hidden', 'false');
-  notificationBadge.textContent = count > 9 ? '9+' : String(count);
+  notificationBadge.classList.remove("hidden");
+  notificationBadge.setAttribute("aria-hidden", "false");
+  notificationBadge.textContent = count > 9 ? "9+" : String(count);
 }
 
 async function markAllNotificationsRead() {
@@ -571,8 +613,8 @@ async function markAllNotificationsRead() {
   const merged = [
     ...new Set([
       ...(config?.readNotificationIds || []).map(String),
-      ...notificationItems.map(getNotificationId).filter(Boolean)
-    ])
+      ...notificationItems.map(getNotificationId).filter(Boolean),
+    ]),
   ];
 
   if (merged.length === (config?.readNotificationIds || []).length) {
@@ -587,16 +629,17 @@ async function markAllNotificationsRead() {
 }
 
 function getServerEndpoint() {
-  const ip = String(config?.serverIp || '').trim();
-  const port = Number(config?.serverPort) || window.dalton?.defaultServerPort || 30120;
-  return ip ? `${ip}:${port}` : '';
+  const ip = String(config?.serverIp || "").trim();
+  const port =
+    Number(config?.serverPort) || window.dalton?.defaultServerPort || 30120;
+  return ip ? `${ip}:${port}` : "";
 }
 
 function getPingLevel(ping) {
-  if (ping == null || Number.isNaN(ping)) return 'none';
-  if (ping <= 80) return 'good';
-  if (ping <= 150) return 'medium';
-  return 'bad';
+  if (ping == null || Number.isNaN(ping)) return "none";
+  if (ping <= 80) return "good";
+  if (ping <= 150) return "medium";
+  return "bad";
 }
 
 function formatServerPlayersLine(status) {
@@ -604,24 +647,24 @@ function formatServerPlayersLine(status) {
     if (status.error) {
       const error = String(status.error).trim();
       if (/offline|no disponible/i.test(error)) {
-        return 'No disponible';
+        return "No disponible";
       }
 
       return error.charAt(0).toUpperCase() + error.slice(1);
     }
 
-    return 'Sin jugadores';
+    return "Sin jugadores";
   }
 
-  return `${status.clients} / ${status.maxClients || '—'} jugadores`;
+  return `${status.clients} / ${status.maxClients || "—"} jugadores`;
 }
 
 function updateServerPing(ping) {
   if (!serverPing) return;
 
   if (ping == null || Number.isNaN(ping)) {
-    serverPing.textContent = '—';
-    serverPing.className = 'server-card__ping server-card__ping--none';
+    serverPing.textContent = "—";
+    serverPing.className = "server-card__ping server-card__ping--none";
     return;
   }
 
@@ -635,15 +678,15 @@ function setServerCardChecking(initial = false) {
     return;
   }
 
-  serverCard.classList.remove('server-card--online-flash');
+  serverCard.classList.remove("server-card--online-flash");
 
   if (!launchPending) {
-    serverCard.classList.remove('server-card--connecting');
+    serverCard.classList.remove("server-card--connecting");
   }
 
-  serverStatusDot.className = 'server-card__dot server-card__dot--checking';
-  serverStatusText.textContent = 'Verificando';
-  serverPlayers.textContent = '—';
+  serverStatusDot.className = "server-card__dot server-card__dot--checking";
+  serverStatusText.textContent = "Verificando";
+  serverPlayers.textContent = "—";
 
   if (initial) {
     updateServerPing(null);
@@ -651,13 +694,13 @@ function setServerCardChecking(initial = false) {
 }
 
 function triggerServerOnlineAnimation() {
-  serverCard.classList.remove('server-card--online-flash');
+  serverCard.classList.remove("server-card--online-flash");
   void serverCard.offsetWidth;
-  serverCard.classList.add('server-card--online-flash');
+  serverCard.classList.add("server-card--online-flash");
 }
 
 function updateServerCardConnectingAnimation(isConnecting) {
-  serverCard.classList.toggle('server-card--connecting', isConnecting);
+  serverCard.classList.toggle("server-card--connecting", isConnecting);
 }
 
 function applyServerStatus(status) {
@@ -673,15 +716,15 @@ function applyServerStatus(status) {
 
   if (!status.online) {
     consecutiveServerOfflineChecks += 1;
-    serverCard.classList.remove('server-card--online-flash');
-    serverStatusDot.className = 'server-card__dot server-card__dot--offline';
-    serverStatusText.textContent = 'Offline';
-    serverHostname.textContent = 'Dalton Life';
+    serverCard.classList.remove("server-card--online-flash");
+    serverStatusDot.className = "server-card__dot server-card__dot--offline";
+    serverStatusText.textContent = "Offline";
+    serverHostname.textContent = "Dalton Life";
     serverPlayers.textContent = formatServerPlayersLine(status);
     updateServerPing(null);
 
-    if (currentPlayState === 'idle' && !launchPending) {
-      updateStartButton('idle');
+    if (currentPlayState === "idle" && !launchPending) {
+      updateStartButton("idle");
     }
 
     return;
@@ -693,14 +736,15 @@ function applyServerStatus(status) {
     triggerServerOnlineAnimation();
   }
 
-  serverStatusDot.className = 'server-card__dot server-card__dot--online';
-  serverStatusText.textContent = 'En línea';
-  serverHostname.textContent = String(status.hostname || 'Dalton Life').trim() || 'Dalton Life';
+  serverStatusDot.className = "server-card__dot server-card__dot--online";
+  serverStatusText.textContent = "En línea";
+  serverHostname.textContent =
+    String(status.hostname || "Dalton Life").trim() || "Dalton Life";
   serverPlayers.textContent = formatServerPlayersLine(status);
   updateServerPing(status.ping);
 
-  if (currentPlayState === 'idle' && !launchPending) {
-    updateStartButton('idle');
+  if (currentPlayState === "idle" && !launchPending) {
+    updateStartButton("idle");
   }
 }
 
@@ -708,31 +752,33 @@ async function queryServerStatus() {
   if (!window.dalton?.getServerStatus) {
     return {
       online: false,
-      error: 'No se pudo consultar el servidor'
+      error: "No se pudo consultar el servidor",
     };
   }
 
   const status = await window.dalton.getServerStatus();
 
-  return status || {
-    online: false,
-    error: 'Servidor offline'
-  };
+  return (
+    status || {
+      online: false,
+      error: "Servidor offline",
+    }
+  );
 }
 
 async function refreshServerStatusNow() {
-  const ip = String(config?.serverIp || '').trim();
+  const ip = String(config?.serverIp || "").trim();
 
   if (!ip) {
     hasDisplayedServerStatus = true;
     lastServerOnlineState = false;
-    serverStatusDot.className = 'server-card__dot server-card__dot--offline';
-    serverStatusText.textContent = 'Servidor no configurado';
-    serverPlayers.textContent = '—';
+    serverStatusDot.className = "server-card__dot server-card__dot--offline";
+    serverStatusText.textContent = "Servidor no configurado";
+    serverPlayers.textContent = "—";
     updateServerPing(null);
 
-    if (currentPlayState === 'idle' && !launchPending) {
-      updateStartButton('idle');
+    if (currentPlayState === "idle" && !launchPending) {
+      updateStartButton("idle");
     }
 
     return;
@@ -740,7 +786,7 @@ async function refreshServerStatusNow() {
 
   const requestId = ++serverStatusRequestId;
 
-  if (!launchPending && currentPlayState === 'idle') {
+  if (!launchPending && currentPlayState === "idle") {
     setServerCardChecking(!hasDisplayedServerStatus);
   }
 
@@ -760,7 +806,7 @@ async function refreshServerStatusNow() {
     applyServerStatus({
       online: false,
       endpoint: getServerEndpoint(),
-      error: error?.message || 'Error consultando servidor'
+      error: error?.message || "Error consultando servidor",
     });
   }
 }
@@ -803,21 +849,25 @@ function stopServerStatusPolling() {
 
 function updateStartButton(state) {
   currentPlayState = state;
-  btnStartDalton.classList.remove('cta--running', 'cta--connecting', 'cta--offline');
+  btnStartDalton.classList.remove(
+    "cta--running",
+    "cta--connecting",
+    "cta--offline",
+  );
 
-  if (state === 'running') {
+  if (state === "running") {
     btnStartDalton.disabled = true;
-    btnStartDalton.classList.add('cta--running');
-    btnStartDalton.textContent = 'EN EJECUCIÓN';
+    btnStartDalton.classList.add("cta--running");
+    btnStartDalton.textContent = "EN EJECUCIÓN";
     updateServerCardConnectingAnimation(false);
     syncDiscordPresence(state);
     return;
   }
 
-  if (state === 'connecting') {
+  if (state === "connecting") {
     btnStartDalton.disabled = true;
-    btnStartDalton.classList.add('cta--connecting');
-    btnStartDalton.textContent = 'CONECTANDO...';
+    btnStartDalton.classList.add("cta--connecting");
+    btnStartDalton.textContent = "CONECTANDO...";
     updateServerCardConnectingAnimation(true);
     syncDiscordPresence(state);
     return;
@@ -827,14 +877,14 @@ function updateStartButton(state) {
 
   if (hasDisplayedServerStatus && lastServerOnlineState === false) {
     btnStartDalton.disabled = true;
-    btnStartDalton.classList.add('cta--offline');
-    btnStartDalton.textContent = 'SERVIDOR OFFLINE';
+    btnStartDalton.classList.add("cta--offline");
+    btnStartDalton.textContent = "SERVIDOR OFFLINE";
     syncDiscordPresence(state);
     return;
   }
 
   btnStartDalton.disabled = false;
-  btnStartDalton.textContent = 'INICIAR DALTON LIFE';
+  btnStartDalton.textContent = "INICIAR DALTON LIFE";
   syncDiscordPresence(state);
 }
 
@@ -845,7 +895,7 @@ async function refreshPlayState() {
 
     if (playState.inGame) {
       launchPending = false;
-      updateStartButton('running');
+      updateStartButton("running");
       return;
     }
 
@@ -857,29 +907,31 @@ async function refreshPlayState() {
       if (fivemOpenedDuringConnect && !playState.running) {
         launchPending = false;
         fivemOpenedDuringConnect = false;
-        updateStartButton('idle');
-        showLaunchError('FiveM se cerró antes de conectar. Inténtalo de nuevo.');
+        updateStartButton("idle");
+        showLaunchError(
+          "FiveM se cerró antes de conectar. Inténtalo de nuevo.",
+        );
         refreshServerStatus();
         return;
       }
 
-      updateStartButton('connecting');
+      updateStartButton("connecting");
       return;
     }
 
-    if (previousState === 'running' || previousState === 'connecting') {
+    if (previousState === "running" || previousState === "connecting") {
       launchPending = false;
       fivemOpenedDuringConnect = false;
     }
 
-    updateStartButton('idle');
+    updateStartButton("idle");
 
-    if (previousState !== 'idle') {
+    if (previousState !== "idle") {
       refreshServerStatus();
     }
   } catch {
     if (!launchPending) {
-      updateStartButton('idle');
+      updateStartButton("idle");
     }
   }
 }
@@ -898,24 +950,25 @@ function stopPlayStatePolling() {
 
   launchPending = false;
   fivemOpenedDuringConnect = false;
-  currentPlayState = 'idle';
-  updateStartButton('idle');
+  currentPlayState = "idle";
+  updateStartButton("idle");
   updateServerCardConnectingAnimation(false);
 }
 
-function escapeHtml(value = '') {
+function escapeHtml(value = "") {
   return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function renderNotifications(items = notificationItems) {
   if (!notificationsList) return;
 
   if (!items.length) {
-    notificationsList.innerHTML = '<p class="news-block__empty">No hay notificaciones por ahora.</p>';
+    notificationsList.innerHTML =
+      '<p class="news-block__empty">No hay notificaciones por ahora.</p>';
     updateNotificationBadge();
     return;
   }
@@ -927,23 +980,23 @@ function renderNotifications(items = notificationItems) {
       const id = getNotificationId(item);
       const isUnread = id && !read.has(id);
       const link = item.link
-        ? `<button type="button" class="news-item__link" data-social-url="${escapeHtml(item.link)}">${escapeHtml(item.linkLabel || 'Ver más')}</button>`
-        : '';
+        ? `<button type="button" class="news-item__link" data-social-url="${escapeHtml(item.link)}">${escapeHtml(item.linkLabel || "Ver más")}</button>`
+        : "";
 
       return `
-        <article class="news-item${isUnread ? ' news-item--unread' : ''}">
-          <span class="news-item__tag">${escapeHtml(item.tag || 'AVISO')}</span>
-          <h4 class="news-item__title">${escapeHtml(item.title || '')}</h4>
-          <p class="news-item__body">${escapeHtml(item.body || '')}</p>
+        <article class="news-item${isUnread ? " news-item--unread" : ""}">
+          <span class="news-item__tag">${escapeHtml(item.tag || "AVISO")}</span>
+          <h4 class="news-item__title">${escapeHtml(item.title || "")}</h4>
+          <p class="news-item__body">${escapeHtml(item.body || "")}</p>
           ${link}
         </article>
       `;
     })
-    .join('');
+    .join("");
 
-  notificationsList.querySelectorAll('[data-social-url]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const url = button.getAttribute('data-social-url');
+  notificationsList.querySelectorAll("[data-social-url]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const url = button.getAttribute("data-social-url");
       if (url) window.dalton.openExternal(url);
     });
   });
@@ -968,12 +1021,12 @@ function applyConfigToUi() {
   footerVersion.textContent = versionLabel;
   installFooterVersion.textContent = versionLabel;
   launcherInstallPathInput.value = config.launcherInstallPath;
-  document.getElementById('mute-music').checked = config.muteBackgroundMusic;
-  document.getElementById('mute-sfx').checked = config.muteButtonSounds;
+  document.getElementById("mute-music").checked = config.muteBackgroundMusic;
+  document.getElementById("mute-sfx").checked = config.muteButtonSounds;
   updateMusicVolumeUi(getBackgroundMusicVolume());
-  setInstallStatus('LISTO PARA INSTALAR', config.launcherInstallPath);
+  setInstallStatus("LISTO PARA INSTALAR", config.launcherInstallPath);
 
-  if (homeView.classList.contains('view--active')) {
+  if (homeView.classList.contains("view--active")) {
     refreshServerStatus();
     updateNotificationBadge();
   }
@@ -982,7 +1035,7 @@ function applyConfigToUi() {
   syncDiscordPresence(currentPlayState);
 }
 
-function showBusyOverlay({ title, message, hint = 'No cierres el launcher.' }) {
+function showBusyOverlay({ title, message, hint = "No cierres el launcher." }) {
   if (updateInProgress) {
     return;
   }
@@ -991,11 +1044,11 @@ function showBusyOverlay({ title, message, hint = 'No cierres el launcher.' }) {
   updateTitle.textContent = title;
   updateMessage.textContent = message;
   updateHint.textContent = hint;
-  updateProgressRow.classList.add('hidden');
-  updateSpinner.classList.remove('hidden');
-  updateSpinner.setAttribute('aria-hidden', 'false');
-  updateOverlay.classList.remove('hidden');
-  updateOverlay.setAttribute('aria-hidden', 'false');
+  updateProgressRow.classList.add("hidden");
+  updateSpinner.classList.remove("hidden");
+  updateSpinner.setAttribute("aria-hidden", "false");
+  updateOverlay.classList.remove("hidden");
+  updateOverlay.setAttribute("aria-hidden", "false");
 }
 
 function hideBusyOverlay() {
@@ -1003,54 +1056,59 @@ function hideBusyOverlay() {
     return;
   }
 
-  updateOverlay.classList.add('hidden');
-  updateOverlay.setAttribute('aria-hidden', 'true');
-  updateSpinner.classList.add('hidden');
-  updateSpinner.setAttribute('aria-hidden', 'true');
-  updateProgressRow.classList.remove('hidden');
-  updateTitle.textContent = 'ACTUALIZANDO';
-  updateHint.textContent = 'No cierres el launcher.';
+  updateOverlay.classList.add("hidden");
+  updateOverlay.setAttribute("aria-hidden", "true");
+  updateSpinner.classList.add("hidden");
+  updateSpinner.setAttribute("aria-hidden", "true");
+  updateProgressRow.classList.remove("hidden");
+  updateTitle.textContent = "ACTUALIZANDO";
+  updateHint.textContent = "No cierres el launcher.";
 }
 
-function showUpdateOverlay({ title, message, hint = 'No cierres el launcher.', mode = 'progress' }) {
+function showUpdateOverlay({
+  title,
+  message,
+  hint = "No cierres el launcher.",
+  mode = "progress",
+}) {
   updateInProgress = true;
   closeSidePanels();
   updateTitle.textContent = title;
   updateMessage.textContent = message;
   updateHint.textContent = hint;
-  updateActionsRow?.classList.toggle('hidden', mode !== 'ready');
+  updateActionsRow?.classList.toggle("hidden", mode !== "ready");
 
-  if (mode === 'spinner') {
-    updateProgressRow.classList.add('hidden');
-    updateSpinner.classList.remove('hidden');
-    updateSpinner.setAttribute('aria-hidden', 'false');
-  } else if (mode === 'ready') {
-    updateSpinner.classList.add('hidden');
-    updateSpinner.setAttribute('aria-hidden', 'true');
-    updateProgressRow.classList.add('hidden');
+  if (mode === "spinner") {
+    updateProgressRow.classList.add("hidden");
+    updateSpinner.classList.remove("hidden");
+    updateSpinner.setAttribute("aria-hidden", "false");
+  } else if (mode === "ready") {
+    updateSpinner.classList.add("hidden");
+    updateSpinner.setAttribute("aria-hidden", "true");
+    updateProgressRow.classList.add("hidden");
   } else {
-    updateSpinner.classList.add('hidden');
-    updateSpinner.setAttribute('aria-hidden', 'true');
-    updateProgressRow.classList.remove('hidden');
+    updateSpinner.classList.add("hidden");
+    updateSpinner.setAttribute("aria-hidden", "true");
+    updateProgressRow.classList.remove("hidden");
   }
 
-  updateOverlay.classList.remove('hidden');
-  updateOverlay.setAttribute('aria-hidden', 'false');
+  updateOverlay.classList.remove("hidden");
+  updateOverlay.setAttribute("aria-hidden", "false");
 }
 
 function hideUpdateOverlay() {
   updateInProgress = false;
-  updateOverlay.classList.add('hidden');
-  updateOverlay.setAttribute('aria-hidden', 'true');
-  updateSpinner.classList.add('hidden');
-  updateSpinner.setAttribute('aria-hidden', 'true');
-  updateProgressRow.classList.remove('hidden');
-  updateActionsRow?.classList.add('hidden');
-  updateTitle.textContent = 'ACTUALIZANDO';
-  updateMessage.textContent = 'Descargando componentes...';
-  updateHint.textContent = 'No cierres el launcher.';
-  progressBar.style.width = '0%';
-  progressValue.textContent = '0%';
+  updateOverlay.classList.add("hidden");
+  updateOverlay.setAttribute("aria-hidden", "true");
+  updateSpinner.classList.add("hidden");
+  updateSpinner.setAttribute("aria-hidden", "true");
+  updateProgressRow.classList.remove("hidden");
+  updateActionsRow?.classList.add("hidden");
+  updateTitle.textContent = "ACTUALIZANDO";
+  updateMessage.textContent = "Descargando componentes...";
+  updateHint.textContent = "No cierres el launcher.";
+  progressBar.style.width = "0%";
+  progressValue.textContent = "0%";
   clearUpdateSize();
   setUpdateNotes(null, false);
   refreshPendingUpdateBadge();
@@ -1066,10 +1124,10 @@ function showUpdateReady(version, releaseNotes = pendingUpdateReleaseNotes) {
   setUpdateNotes(pendingUpdateReleaseNotes, true);
   clearUpdateSize();
   showUpdateOverlay({
-    title: 'LISTO PARA REINICIAR',
+    title: "LISTO PARA REINICIAR",
     message: `La versión v${formatUpdateVersion(version)} está lista para instalar.`,
-    mode: 'ready',
-    hint: 'Debes reiniciar el launcher para aplicar la actualización. No basta con recargar la ventana.'
+    mode: "ready",
+    hint: "Debes reiniciar el launcher para aplicar la actualización. No basta con recargar la ventana.",
   });
 }
 
@@ -1113,14 +1171,14 @@ function setupUpdaterListeners() {
 
   return window.dalton.onUpdaterEvent((event) => {
     switch (event.type) {
-      case 'checking':
+      case "checking":
         if (event.manual) {
           clearUpdateStatus();
           hideUpdateToast();
           setManualUpdateChecking(true);
         }
         break;
-      case 'available':
+      case "available":
         setManualUpdateChecking(false);
         hideUpdateToast();
         setUpdateFeedbackActions();
@@ -1129,36 +1187,42 @@ function setupUpdaterListeners() {
         setUpdateNotes(null, false);
         clearUpdateSize();
         showUpdateOverlay({
-          title: 'ACTUALIZANDO',
+          title: "ACTUALIZANDO",
           message: `Descargando v${formatUpdateVersion(event.version)}...`,
-          mode: 'progress'
+          mode: "progress",
         });
         setUpdateOverlayProgress(0, 0, 0);
         break;
-      case 'progress':
+      case "progress":
         setUpdateOverlayProgress(event.percent, event.transferred, event.total);
         break;
-      case 'downloaded':
+      case "downloaded":
         setManualUpdateChecking(false);
-        showUpdateReady(event.version, event.releaseNotes || pendingUpdateReleaseNotes);
+        showUpdateReady(
+          event.version,
+          event.releaseNotes || pendingUpdateReleaseNotes,
+        );
         break;
-      case 'not-available':
+      case "not-available":
         setManualUpdateChecking(false);
         resolveStartupUpdateCheckIfNeeded();
         hideUpdateOverlay();
         setUpdateFeedbackActions();
         if (event.manual) {
-          setUpdateStatus('Ya tienes la última versión.', 'success');
+          setUpdateStatus("Ya tienes la última versión.", "success");
         }
         break;
-      case 'error':
+      case "error":
         setManualUpdateChecking(false);
         resolveStartupUpdateCheckIfNeeded();
         hideUpdateOverlay();
-        showUpdateError(event.message || 'No se pudo comprobar actualizaciones.', {
-          manual: Boolean(event.manual),
-          startup: Boolean(event.startup)
-        });
+        showUpdateError(
+          event.message || "No se pudo comprobar actualizaciones.",
+          {
+            manual: Boolean(event.manual),
+            startup: Boolean(event.startup),
+          },
+        );
         break;
       default:
         break;
@@ -1170,18 +1234,18 @@ function setInstallOverlayProgress(message, percent) {
   const safePercent = Math.min(100, Math.max(0, Number(percent) || 0));
 
   closeSidePanels();
-  installOverlay.classList.remove('hidden');
-  installOverlay.setAttribute('aria-hidden', 'false');
+  installOverlay.classList.remove("hidden");
+  installOverlay.setAttribute("aria-hidden", "false");
   installMessage.textContent = message;
   installProgressBar.style.width = `${safePercent}%`;
   installProgressValue.textContent = `${safePercent}%`;
 }
 
 function hideInstallOverlay() {
-  installOverlay.classList.add('hidden');
-  installOverlay.setAttribute('aria-hidden', 'true');
-  installProgressBar.style.width = '0%';
-  installProgressValue.textContent = '0%';
+  installOverlay.classList.add("hidden");
+  installOverlay.setAttribute("aria-hidden", "true");
+  installProgressBar.style.width = "0%";
+  installProgressValue.textContent = "0%";
 }
 
 async function saveConfigPartial(partial) {
@@ -1206,7 +1270,7 @@ async function bootstrap() {
   refreshPendingUpdateBadge();
 
   window.daltonSounds.init(getAudioSettings());
-  syncDiscordPresence('launcher');
+  syncDiscordPresence("launcher");
 
   await sleep(getSplashDelayMs());
 
@@ -1214,7 +1278,7 @@ async function bootstrap() {
     await transitionToHome();
     await checkFiveMInstalledOnHome();
     void runStartupUpdateCheck();
-    syncDiscordPresence('idle');
+    syncDiscordPresence("idle");
     startServerStatusPolling();
     startPlayStatePolling();
     await loadNotifications();
@@ -1223,119 +1287,138 @@ async function bootstrap() {
 
   stopServerStatusPolling();
   stopPlayStatePolling();
-  syncDiscordPresence('launcher');
+  syncDiscordPresence("launcher");
   await transitionToInstall();
 }
 
-document.getElementById('btn-minimize').addEventListener('click', () => {
+document.getElementById("btn-minimize").addEventListener("click", () => {
   window.dalton.minimizeWindow();
 });
 
-document.getElementById('btn-close').addEventListener('click', () => {
+document.getElementById("btn-close").addEventListener("click", () => {
   window.dalton.closeWindow();
 });
 
-document.getElementById('btn-minimize-install').addEventListener('click', () => {
-  window.dalton.minimizeWindow();
-});
+document
+  .getElementById("btn-minimize-install")
+  .addEventListener("click", () => {
+    window.dalton.minimizeWindow();
+  });
 
-document.getElementById('btn-close-install').addEventListener('click', () => {
+document.getElementById("btn-close-install").addEventListener("click", () => {
   window.dalton.closeWindow();
 });
 
-document.getElementById('btn-notifications').addEventListener('click', () => {
-  const isOpen = notificationsPanel.classList.contains('is-open');
+document.getElementById("btn-notifications").addEventListener("click", () => {
+  const isOpen = notificationsPanel.classList.contains("is-open");
   toggleNotifications(!isOpen);
 });
 
-document.getElementById('btn-close-notifications').addEventListener('click', () => {
-  toggleNotifications(false);
-});
+document
+  .getElementById("btn-close-notifications")
+  .addEventListener("click", () => {
+    toggleNotifications(false);
+  });
 
-document.getElementById('btn-settings').addEventListener('click', () => {
+document.getElementById("btn-settings").addEventListener("click", () => {
   toggleSettings(true);
 });
 
-document.getElementById('btn-settings-install').addEventListener('click', () => {
-  toggleSettings(true);
-});
+document
+  .getElementById("btn-settings-install")
+  .addEventListener("click", () => {
+    toggleSettings(true);
+  });
 
-document.getElementById('btn-close-settings').addEventListener('click', () => {
+document.getElementById("btn-close-settings").addEventListener("click", () => {
   toggleSettings(false);
 });
 
-document.getElementById('btn-browse-launcher').addEventListener('click', async () => {
-  const selected = await window.dalton.selectFolder();
-  if (!selected) return;
+document
+  .getElementById("btn-browse-launcher")
+  .addEventListener("click", async () => {
+    const selected = await window.dalton.selectFolder();
+    if (!selected) return;
 
-  const result = await window.dalton.resolveInstallPath(selected);
+    const result = await window.dalton.resolveInstallPath(selected);
 
-  if (!result?.ok) {
-    setInstallStatus(
-      result?.message || 'No se pudo usar esa carpeta de instalación.',
-      config.launcherInstallPath
-    );
-    return;
-  }
+    if (!result?.ok) {
+      setInstallStatus(
+        result?.message || "No se pudo usar esa carpeta de instalación.",
+        config.launcherInstallPath,
+      );
+      return;
+    }
 
-  await saveConfigPartial({ launcherInstallPath: result.path });
-});
+    await saveConfigPartial({ launcherInstallPath: result.path });
+  });
 
-document.getElementById('mute-music').addEventListener('change', async (event) => {
-  await saveConfigPartial({ muteBackgroundMusic: event.target.checked });
-  updateMusicVolumeUi();
-});
+document
+  .getElementById("mute-music")
+  .addEventListener("change", async (event) => {
+    await saveConfigPartial({ muteBackgroundMusic: event.target.checked });
+    updateMusicVolumeUi();
+  });
 
-musicVolumeInput.addEventListener('input', (event) => {
+musicVolumeInput.addEventListener("input", (event) => {
   const volume = clampVolumePercent(event.target.value, 0);
   musicVolumeInput.value = String(volume);
   musicVolumeValue.textContent = `${volume}%`;
   window.daltonSounds?.refresh({
     ...getAudioSettings(),
-    backgroundMusicVolume: volume
+    backgroundMusicVolume: volume,
   });
 });
 
-musicVolumeInput.addEventListener('change', async (event) => {
+musicVolumeInput.addEventListener("change", async (event) => {
   const volume = clampVolumePercent(event.target.value, 0);
   musicVolumeInput.value = String(volume);
   updateMusicVolumeUi(volume);
   await saveConfigPartial({ backgroundMusicVolume: volume });
 });
 
-document.getElementById('mute-sfx').addEventListener('change', async (event) => {
-  await saveConfigPartial({ muteButtonSounds: event.target.checked });
-});
+document
+  .getElementById("mute-sfx")
+  .addEventListener("change", async (event) => {
+    await saveConfigPartial({ muteButtonSounds: event.target.checked });
+  });
 
-btnInstallLauncher.addEventListener('click', async () => {
+btnInstallLauncher.addEventListener("click", async () => {
   if (btnInstallLauncher.disabled) {
     return;
   }
 
   btnInstallLauncher.disabled = true;
-  setInstallStatus('INSTALANDO...', config.launcherInstallPath);
+  setInstallStatus("INSTALANDO...", config.launcherInstallPath);
 
-  const createDesktopShortcut = document.getElementById('create-desktop-shortcut').checked;
+  const createDesktopShortcut = document.getElementById(
+    "create-desktop-shortcut",
+  ).checked;
 
-  setInstallOverlayProgress('Preparando instalación...', 10);
+  setInstallOverlayProgress("Preparando instalación...", 10);
 
   try {
-    setInstallOverlayProgress('Creando carpetas del launcher...', 40);
+    setInstallOverlayProgress("Creando carpetas del launcher...", 40);
 
     const result = await window.dalton.installLauncher({
       installPath: config.launcherInstallPath,
-      createDesktopShortcut
+      createDesktopShortcut,
     });
 
     if (!result.ok) {
       hideInstallOverlay();
-      setInstallStatus(result.message || 'ERROR DE INSTALACIÓN', config.launcherInstallPath);
+      setInstallStatus(
+        result.message || "ERROR DE INSTALACIÓN",
+        config.launcherInstallPath,
+      );
       return;
     }
 
     setInstallOverlayProgress(
-      createDesktopShortcut ? 'Acceso directo creado. Finalizando...' : 'Instalación completada.',
-      100
+      createDesktopShortcut
+        ? "Acceso directo creado. Finalizando..."
+        : "Instalación completada.",
+      100,
     );
 
     await sleep(250);
@@ -1348,7 +1431,7 @@ btnInstallLauncher.addEventListener('click', async () => {
       appVersion = DEFAULT_APP_VERSION;
     }
     applyConfigToUi();
-    syncDiscordPresence('idle');
+    syncDiscordPresence("idle");
     await transitionInstallToHome();
     await checkFiveMInstalledOnHome();
     await loadNotifications();
@@ -1356,13 +1439,16 @@ btnInstallLauncher.addEventListener('click', async () => {
     startPlayStatePolling();
   } catch (error) {
     hideInstallOverlay();
-    setInstallStatus(error.message || 'ERROR DE INSTALACIÓN', config.launcherInstallPath);
+    setInstallStatus(
+      error.message || "ERROR DE INSTALACIÓN",
+      config.launcherInstallPath,
+    );
   } finally {
     btnInstallLauncher.disabled = false;
   }
 });
 
-btnStartDalton.addEventListener('click', async () => {
+btnStartDalton.addEventListener("click", async () => {
   if (btnStartDalton.disabled) {
     return;
   }
@@ -1370,19 +1456,19 @@ btnStartDalton.addEventListener('click', async () => {
   const playStateBefore = await window.dalton.getFiveMPlayState();
 
   if (playStateBefore.inGame) {
-    updateStartButton('running');
+    updateStartButton("running");
     return;
   }
 
   launchPending = true;
   fivemOpenedDuringConnect = playStateBefore.running;
-  updateStartButton('connecting');
+  updateStartButton("connecting");
 
   const result = await window.dalton.startDaltonLife();
 
   if (!result.ok) {
     launchPending = false;
-    updateStartButton('idle');
+    updateStartButton("idle");
     showLaunchError(result.message);
     return;
   }
@@ -1390,49 +1476,54 @@ btnStartDalton.addEventListener('click', async () => {
   await refreshPlayState();
 });
 
-document.addEventListener('click', (event) => {
-  const socialButton = event.target.closest('[data-social-url]');
+document.addEventListener("click", (event) => {
+  const socialButton = event.target.closest("[data-social-url]");
 
   if (!socialButton) {
     return;
   }
 
-  const url = socialButton.getAttribute('data-social-url');
+  const url = socialButton.getAttribute("data-social-url");
 
   if (url) {
     window.dalton.openExternal(url);
   }
 });
 
-serverCard.addEventListener('animationend', (event) => {
-  if (event.animationName === 'server-card-online-in') {
-    serverCard.classList.remove('server-card--online-flash');
+serverCard.addEventListener("animationend", (event) => {
+  if (event.animationName === "server-card-online-in") {
+    serverCard.classList.remove("server-card--online-flash");
   }
 });
 
-document.getElementById('btn-open-fivem-site').addEventListener('click', () => {
+document.getElementById("btn-open-fivem-site").addEventListener("click", () => {
   window.dalton.openExternal(FIVEM_DOWNLOAD_URL);
 });
 
-document.getElementById('btn-check-updates')?.addEventListener('click', async () => {
-  if (pendingUpdateVersion) {
-    await window.dalton.installUpdate();
-    return;
-  }
+document
+  .getElementById("btn-check-updates")
+  ?.addEventListener("click", async () => {
+    if (pendingUpdateVersion) {
+      await window.dalton.installUpdate();
+      return;
+    }
 
-  clearUpdateStatus();
-  const result = await window.dalton.checkForUpdates({ manual: true });
+    clearUpdateStatus();
+    const result = await window.dalton.checkForUpdates({ manual: true });
 
-  if (result?.skipped) {
-    setUpdateStatus('Las actualizaciones solo están disponibles en la versión instalada.', 'info');
-  }
-});
+    if (result?.skipped) {
+      setUpdateStatus(
+        "Las actualizaciones solo están disponibles en la versión instalada.",
+        "info",
+      );
+    }
+  });
 
-btnUpdateRestart?.addEventListener('click', async () => {
+btnUpdateRestart?.addEventListener("click", async () => {
   await window.dalton.installUpdate();
 });
 
-btnUpdateLater?.addEventListener('click', () => {
+btnUpdateLater?.addEventListener("click", () => {
   hideUpdateOverlay();
   pendingUpdateBannerVisible = true;
   refreshPendingUpdateBadge();
@@ -1440,68 +1531,74 @@ btnUpdateLater?.addEventListener('click', () => {
   if (pendingUpdateVersion) {
     setUpdateStatus(
       `Actualización v${formatUpdateVersion(pendingUpdateVersion)} lista. Pulsa "Reiniciar para actualizar" para aplicarla.`,
-      'info'
+      "info",
     );
   }
 });
 
-btnRetryUpdates?.addEventListener('click', async () => {
+btnRetryUpdates?.addEventListener("click", async () => {
   clearUpdateStatus();
   hideUpdateToast();
   await window.dalton.checkForUpdates({ manual: true });
 });
 
-btnRelaunchLauncher?.addEventListener('click', async () => {
+btnRelaunchLauncher?.addEventListener("click", async () => {
   await window.dalton.relaunchApp();
 });
 
-btnPendingUpdateRestart?.addEventListener('click', async () => {
+btnPendingUpdateRestart?.addEventListener("click", async () => {
   await window.dalton.installUpdate();
 });
 
-btnUpdateToastDismiss?.addEventListener('click', () => {
+btnUpdateToastDismiss?.addEventListener("click", () => {
   hideUpdateToast();
 });
 
-btnUpdateToastRetry?.addEventListener('click', async () => {
+btnUpdateToastRetry?.addEventListener("click", async () => {
   const handler = toastActionHandler;
   hideUpdateToast();
 
-  if (handler === 'update-retry') {
+  if (handler === "update-retry") {
     await window.dalton.checkForUpdates({ manual: true });
     return;
   }
 
-  if (typeof handler === 'function') {
+  if (typeof handler === "function") {
     handler();
   }
 });
 
-document.getElementById('btn-clear-fivem-cache').addEventListener('click', async () => {
-  const confirmed = await window.dalton.confirmClearFiveMCache();
-  if (!confirmed) {
-    return;
-  }
+document
+  .getElementById("btn-clear-fivem-cache")
+  .addEventListener("click", async () => {
+    const confirmed = await window.dalton.confirmClearFiveMCache();
+    if (!confirmed) {
+      return;
+    }
 
-  showBusyOverlay({
-    title: 'BORRANDO CACHÉ',
-    message: 'Eliminando carpetas de FiveM...',
-    hint: 'Esto puede tardar unos segundos.'
+    showBusyOverlay({
+      title: "BORRANDO CACHÉ",
+      message: "Eliminando carpetas de FiveM...",
+      hint: "Esto puede tardar unos segundos.",
+    });
+
+    await sleep(50);
+
+    try {
+      const result = await window.dalton.clearFiveMCache();
+      hideBusyOverlay();
+      await window.dalton.showCacheClearResult(result);
+    } catch (error) {
+      hideBusyOverlay();
+      await window.dalton.showCacheClearResult({
+        ok: false,
+        message: error.message || "Error inesperado al borrar la caché.",
+      });
+    }
   });
 
-  await sleep(50);
-
-  try {
-    const result = await window.dalton.clearFiveMCache();
-    hideBusyOverlay();
-    await window.dalton.showCacheClearResult(result);
-  } catch (error) {
-    hideBusyOverlay();
-    await window.dalton.showCacheClearResult({
-      ok: false,
-      message: error.message || 'Error inesperado al borrar la caché.'
-    });
-  }
+bootstrap().catch(async (error) => {
+  console.error("[bootstrap]", error);
+  splashView.classList.remove("view--active", "splash-exit");
+  installView.classList.add("view--active");
 });
-
-bootstrap();
