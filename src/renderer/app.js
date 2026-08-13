@@ -449,6 +449,23 @@ function getPingLevel(ping) {
   return 'bad';
 }
 
+function formatServerPlayersLine(status) {
+  if (!status.online) {
+    if (status.error) {
+      const error = String(status.error).trim();
+      if (/offline|no disponible/i.test(error)) {
+        return 'No disponible';
+      }
+
+      return error.charAt(0).toUpperCase() + error.slice(1);
+    }
+
+    return 'Sin jugadores';
+  }
+
+  return `${status.clients} / ${status.maxClients || '—'} jugadores`;
+}
+
 function updateServerPing(ping) {
   if (!serverPing) return;
 
@@ -459,7 +476,7 @@ function updateServerPing(ping) {
   }
 
   const roundedPing = Math.max(0, Math.round(ping));
-  serverPing.textContent = `${roundedPing} MS`;
+  serverPing.textContent = `${roundedPing} ms`;
   serverPing.className = `server-card__ping server-card__ping--${getPingLevel(roundedPing)}`;
 }
 
@@ -475,8 +492,8 @@ function setServerCardChecking(initial = false) {
   }
 
   serverStatusDot.className = 'server-card__dot server-card__dot--checking';
-  serverStatusText.textContent = 'VERIFICANDO...';
-  serverPlayers.textContent = 'JUGADORES: —';
+  serverStatusText.textContent = 'Verificando';
+  serverPlayers.textContent = '—';
 
   if (initial) {
     updateServerPing(null);
@@ -507,9 +524,9 @@ function applyServerStatus(status) {
   if (!status.online) {
     serverCard.classList.remove('server-card--online-flash');
     serverStatusDot.className = 'server-card__dot server-card__dot--offline';
-    serverStatusText.textContent = 'OFFLINE';
+    serverStatusText.textContent = 'Offline';
     serverHostname.textContent = 'Dalton Life';
-    serverPlayers.textContent = status.error ? status.error.toUpperCase() : 'JUGADORES: —';
+    serverPlayers.textContent = formatServerPlayersLine(status);
     updateServerPing(null);
 
     if (currentPlayState === 'idle' && !launchPending) {
@@ -524,9 +541,9 @@ function applyServerStatus(status) {
   }
 
   serverStatusDot.className = 'server-card__dot server-card__dot--online';
-  serverStatusText.textContent = 'EN LÍNEA';
+  serverStatusText.textContent = 'En línea';
   serverHostname.textContent = String(status.hostname || 'Dalton Life').trim() || 'Dalton Life';
-  serverPlayers.textContent = `JUGADORES: ${status.clients} / ${status.maxClients || '—'}`;
+  serverPlayers.textContent = formatServerPlayersLine(status);
   updateServerPing(status.ping);
 
   if (currentPlayState === 'idle' && !launchPending) {
@@ -571,8 +588,8 @@ async function refreshServerStatusNow() {
     hasDisplayedServerStatus = true;
     lastServerOnlineState = false;
     serverStatusDot.className = 'server-card__dot server-card__dot--offline';
-    serverStatusText.textContent = 'SIN CONFIGURAR';
-    serverPlayers.textContent = 'JUGADORES: —';
+    serverStatusText.textContent = 'Sin configurar';
+    serverPlayers.textContent = '—';
     updateServerPing(null);
 
     if (currentPlayState === 'idle' && !launchPending) {
