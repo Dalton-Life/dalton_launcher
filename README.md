@@ -79,7 +79,8 @@ El build genera:
 - Solo busca actualizaciones cuando la app está **empaquetada** (`app.isPackaged`).
 - En desarrollo (`npm start` / `npm run dev`) no se comprueban updates.
 - Al arrancar, comprueba updates ~3 s después de abrir la ventana.
-- Si hay update: descarga automática, barra de progreso y reinicio tras 5 s.
+- Si hay update: descarga automática con barra de progreso; al terminar puedes reiniciar ahora o posponer desde el overlay.
+- La comprobación al arrancar es silenciosa (sin overlay); el botón **Buscar actualizaciones** muestra feedback si ya estás al día o si hubo error.
 - En ajustes: botón **Buscar actualizaciones**.
 
 ### Publicar manualmente (sin CI)

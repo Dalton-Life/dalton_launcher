@@ -18,7 +18,7 @@ contextBridge.exposeInMainWorld('dalton', {
   setDiscordPresence: (state) => ipcRenderer.invoke('discord:set-presence', state),
   syncDiscordPresence: (state) => ipcRenderer.invoke('discord:sync', state),
   openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),
-  checkForUpdates: () => ipcRenderer.invoke('updater:check'),
+  checkForUpdates: (options) => ipcRenderer.invoke('updater:check', options),
   installUpdate: () => ipcRenderer.invoke('updater:install'),
   onUpdaterEvent: (callback) => {
     const listener = (_event, payload) => callback(payload);

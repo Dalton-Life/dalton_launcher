@@ -211,7 +211,7 @@ app.on('activate', () => {
 
 ipcMain.handle('app:get-version', () => getAppVersion(app));
 
-ipcMain.handle('updater:check', () => checkForUpdates());
+ipcMain.handle('updater:check', (_event, options) => checkForUpdates(options || {}));
 
 ipcMain.handle('updater:install', () => {
   quitAndInstall();

@@ -1019,12 +1019,23 @@ input {
   margin-bottom: 1.5rem;
 }
 
+.btn-primary,
 .btn-secondary,
 .btn-danger {
   border-radius: 6px;
   padding: 0.7rem 0.85rem;
   cursor: pointer;
   font-family: var(--AkrobatSemiBold), var(--font);
+}
+
+.btn-primary {
+  border: 1px solid var(--PrimaryColor);
+  background: linear-gradient(90deg, var(--SecondaryColor), var(--PrimaryColor));
+  color: #1c1c1c;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.05);
 }
 
 .btn-secondary {
@@ -1037,6 +1048,11 @@ input {
   background: rgba(124, 64, 160, 0.25);
   border-color: var(--SecondaryColor);
   color: var(--PrimaryColor);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .danger-zone {
@@ -1124,6 +1140,46 @@ input {
   font-family: var(--AkrobatSemiBold), var(--font);
   font-size: 0.78rem;
   letter-spacing: 0.12em;
+}
+
+.update-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.update-actions .btn-primary,
+.update-actions .btn-secondary {
+  width: 100%;
+}
+
+.update-status {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 6px;
+  font-family: var(--AkrobatRegular), var(--font);
+  font-size: 0.85rem;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.update-status--info {
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+}
+
+.update-status--success {
+  color: #b8f5c7;
+  background: rgba(72, 199, 116, 0.12);
+  border: 1px solid rgba(72, 199, 116, 0.35);
+}
+
+.update-status--error {
+  color: #ffb4b4;
+  background: rgba(255, 52, 64, 0.12);
+  border: 1px solid rgba(255, 52, 64, 0.35);
 }
 
 .update-spinner {

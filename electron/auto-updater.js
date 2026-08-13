@@ -3,6 +3,7 @@ const { autoUpdater } = require('electron-updater');
 
 let mainWindow = null;
 let enabled = false;
+let manualCheck = false;
 
 function send(type, payload = {}) {
   if (!mainWindow || mainWindow.isDestroyed()) {
@@ -22,18 +23,24 @@ function initAutoUpdater(window) {
 
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = false;
-  autoUpdater.logger = null;
+  autoUpdater.logger = {
+    info: (...args) => console.log('[updater]', ...args),
+    warn: (...args) => console.warn('[updater]', ...args),
+    error: (...args) => console.error('[updater]', ...args),
+    debug: () => {}
+  };
 
   autoUpdater.on('checking-for-update', () => {
-    send('checking');
+    send('checking', { manual: manualCheck });
   });
 
   autoUpdater.on('update-available', (info) => {
-    send('available', { version: info.version });
+    send('available', { version: info.version, manual: manualCheck });
   });
 
   autoUpdater.on('update-not-available', () => {
-    send('not-available');
+    send('not-available', { manual: manualCheck });
+    manualCheck = false;
   });
 
   autoUpdater.on('download-progress', (progress) => {
@@ -45,24 +52,35 @@ function initAutoUpdater(window) {
   });
 
   autoUpdater.on('update-downloaded', (info) => {
+    manualCheck = false;
     send('downloaded', { version: info.version });
   });
 
   autoUpdater.on('error', (error) => {
-    send('error', { message: error?.message || 'Error de actualización' });
+    send('error', {
+      message: error?.message || 'Error de actualización',
+      manual: manualCheck
+    });
+    manualCheck = false;
   });
 }
 
-async function checkForUpdates() {
+async function checkForUpdates({ manual = false } = {}) {
   if (!enabled) {
     return { ok: false, skipped: true };
   }
+
+  manualCheck = Boolean(manual);
 
   try {
     await autoUpdater.checkForUpdates();
     return { ok: true };
   } catch (error) {
-    send('error', { message: error.message || 'No se pudo comprobar actualizaciones.' });
+    send('error', {
+      message: error.message || 'No se pudo comprobar actualizaciones.',
+      manual: manualCheck
+    });
+    manualCheck = false;
     return { ok: false, message: error.message };
   }
 }
@@ -73,7 +91,9 @@ function scheduleUpdateCheck(delayMs = 3000) {
   }
 
   setTimeout(() => {
-    checkForUpdates().catch(() => {});
+    checkForUpdates({ manual: false }).catch((error) => {
+      console.error('[updater] scheduled check failed:', error?.message || error);
+    });
   }, delayMs);
 }
 

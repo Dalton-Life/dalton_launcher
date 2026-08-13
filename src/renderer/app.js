@@ -19,10 +19,15 @@ const footerVersion = document.getElementById('footer-version');
 const installFooterVersion = document.getElementById('install-footer-version');
 const progressBar = document.getElementById('progress-bar');
 const progressValue = document.getElementById('progress-value');
+const updateActionsRow = document.getElementById('update-actions-row');
+const btnUpdateRestart = document.getElementById('btn-update-restart');
+const btnUpdateLater = document.getElementById('btn-update-later');
+const btnCheckUpdates = document.getElementById('btn-check-updates');
+const updateStatus = document.getElementById('update-status');
 const DEFAULT_APP_VERSION = '0.1';
 let appVersion = DEFAULT_APP_VERSION;
 let updateInProgress = false;
-let updateRestartTimer = null;
+let pendingUpdateVersion = null;
 const launcherInstallPathInput = document.getElementById('launcher-install-path');
 const btnInstallLauncher = document.getElementById('btn-install-launcher');
 const btnStartDalton = document.getElementById('btn-start-dalton');
@@ -63,6 +68,44 @@ function formatDisplayVersion(version) {
 
 function formatVersionLabel(version = appVersion) {
   return `VERSION v${formatDisplayVersion(version)} — EARLY ACCESS`;
+}
+
+function formatUpdateVersion(version) {
+  const raw = String(version || '').trim().replace(/^v/i, '');
+  return raw || formatDisplayVersion(appVersion);
+}
+
+function setUpdateStatus(message, type = 'info') {
+  if (!updateStatus) {
+    return;
+  }
+
+  updateStatus.textContent = message;
+  updateStatus.className = `update-status update-status--${type}`;
+  updateStatus.classList.remove('hidden');
+}
+
+function clearUpdateStatus() {
+  updateStatus?.classList.add('hidden');
+}
+
+function refreshUpdateButton() {
+  if (!btnCheckUpdates) {
+    return;
+  }
+
+  btnCheckUpdates.textContent = pendingUpdateVersion
+    ? 'Reiniciar para actualizar'
+    : 'Buscar actualizaciones';
+}
+
+function setManualUpdateChecking(isChecking) {
+  if (!btnCheckUpdates || pendingUpdateVersion) {
+    return;
+  }
+
+  btnCheckUpdates.disabled = isChecking;
+  btnCheckUpdates.textContent = isChecking ? 'Buscando...' : 'Buscar actualizaciones';
 }
 
 function clampVolumePercent(value, fallback = 22) {
@@ -666,24 +709,22 @@ function hideBusyOverlay() {
   updateHint.textContent = 'No cierres el launcher.';
 }
 
-function clearUpdateRestartTimer() {
-  if (updateRestartTimer) {
-    clearTimeout(updateRestartTimer);
-    updateRestartTimer = null;
-  }
-}
-
 function showUpdateOverlay({ title, message, hint = 'No cierres el launcher.', mode = 'progress' }) {
   updateInProgress = true;
   updateTitle.textContent = title;
   updateTitle.setAttribute('data-text', title);
   updateMessage.textContent = message;
   updateHint.textContent = hint;
+  updateActionsRow?.classList.toggle('hidden', mode !== 'ready');
 
   if (mode === 'spinner') {
     updateProgressRow.classList.add('hidden');
     updateSpinner.classList.remove('hidden');
     updateSpinner.setAttribute('aria-hidden', 'false');
+  } else if (mode === 'ready') {
+    updateSpinner.classList.add('hidden');
+    updateSpinner.setAttribute('aria-hidden', 'true');
+    updateProgressRow.classList.add('hidden');
   } else {
     updateSpinner.classList.add('hidden');
     updateSpinner.setAttribute('aria-hidden', 'true');
@@ -696,12 +737,12 @@ function showUpdateOverlay({ title, message, hint = 'No cierres el launcher.', m
 
 function hideUpdateOverlay() {
   updateInProgress = false;
-  clearUpdateRestartTimer();
   updateOverlay.classList.add('hidden');
   updateOverlay.setAttribute('aria-hidden', 'true');
   updateSpinner.classList.add('hidden');
   updateSpinner.setAttribute('aria-hidden', 'true');
   updateProgressRow.classList.remove('hidden');
+  updateActionsRow?.classList.add('hidden');
   updateTitle.textContent = 'ACTUALIZANDO';
   updateTitle.setAttribute('data-text', 'ACTUALIZANDO');
   updateMessage.textContent = 'Descargando componentes...';
@@ -710,31 +751,23 @@ function hideUpdateOverlay() {
   progressValue.textContent = '0%';
 }
 
+function showUpdateReady(version) {
+  pendingUpdateVersion = version;
+  refreshUpdateButton();
+  setUpdateOverlayProgress(100);
+  showUpdateOverlay({
+    title: 'LISTO PARA REINICIAR',
+    message: `La versión v${formatUpdateVersion(version)} está lista para instalar.`,
+    mode: 'ready',
+    hint: 'Puedes reiniciar ahora o seguir usando el launcher.'
+  });
+}
+
 function setUpdateOverlayProgress(percent) {
   const safePercent = Math.min(100, Math.max(0, Number(percent) || 0));
 
   progressBar.style.width = `${safePercent}%`;
   progressValue.textContent = `${Math.round(safePercent)}%`;
-}
-
-function scheduleUpdateRestart(version, seconds = 5) {
-  clearUpdateRestartTimer();
-
-  let remaining = seconds;
-
-  const tick = () => {
-    updateHint.textContent = `Reiniciando en ${remaining}s para aplicar v${formatDisplayVersion(version)}...`;
-
-    if (remaining <= 0) {
-      window.dalton.installUpdate();
-      return;
-    }
-
-    remaining -= 1;
-    updateRestartTimer = setTimeout(tick, 1000);
-  };
-
-  tick();
 }
 
 function setupUpdaterListeners() {
@@ -745,16 +778,16 @@ function setupUpdaterListeners() {
   return window.dalton.onUpdaterEvent((event) => {
     switch (event.type) {
       case 'checking':
-        showUpdateOverlay({
-          title: 'BUSCANDO ACTUALIZACIONES',
-          message: 'Comprobando si hay una nueva versión...',
-          mode: 'spinner'
-        });
+        if (event.manual) {
+          clearUpdateStatus();
+          setManualUpdateChecking(true);
+        }
         break;
       case 'available':
+        setManualUpdateChecking(false);
         showUpdateOverlay({
           title: 'ACTUALIZANDO',
-          message: `Descargando v${formatDisplayVersion(event.version)}...`,
+          message: `Descargando v${formatUpdateVersion(event.version)}...`,
           mode: 'progress'
         });
         setUpdateOverlayProgress(0);
@@ -763,20 +796,22 @@ function setupUpdaterListeners() {
         setUpdateOverlayProgress(event.percent);
         break;
       case 'downloaded':
-        setUpdateOverlayProgress(100);
-        showUpdateOverlay({
-          title: 'LISTO PARA REINICIAR',
-          message: `La versión v${formatDisplayVersion(event.version)} está lista.`,
-          mode: 'progress',
-          hint: 'Reiniciando en 5s...'
-        });
-        scheduleUpdateRestart(event.version, 5);
+        setManualUpdateChecking(false);
+        showUpdateReady(event.version);
         break;
       case 'not-available':
+        setManualUpdateChecking(false);
         hideUpdateOverlay();
+        if (event.manual) {
+          setUpdateStatus('Ya tienes la última versión.', 'success');
+        }
         break;
       case 'error':
+        setManualUpdateChecking(false);
         hideUpdateOverlay();
+        if (event.manual) {
+          setUpdateStatus(event.message || 'No se pudo comprobar actualizaciones.', 'error');
+        }
         break;
       default:
         break;
@@ -817,6 +852,7 @@ async function bootstrap() {
 
   config = await window.dalton.getConfig();
   applyConfigToUi();
+  refreshUpdateButton();
 
   window.daltonSounds.init(getAudioSettings());
   syncDiscordPresence('launcher');
@@ -1002,7 +1038,32 @@ document.getElementById('btn-open-fivem-site').addEventListener('click', () => {
 });
 
 document.getElementById('btn-check-updates')?.addEventListener('click', async () => {
-  await window.dalton.checkForUpdates();
+  if (pendingUpdateVersion) {
+    await window.dalton.installUpdate();
+    return;
+  }
+
+  clearUpdateStatus();
+  const result = await window.dalton.checkForUpdates({ manual: true });
+
+  if (result?.skipped) {
+    setUpdateStatus('Las actualizaciones solo están disponibles en la versión instalada.', 'info');
+  }
+});
+
+btnUpdateRestart?.addEventListener('click', async () => {
+  await window.dalton.installUpdate();
+});
+
+btnUpdateLater?.addEventListener('click', () => {
+  hideUpdateOverlay();
+
+  if (pendingUpdateVersion) {
+    setUpdateStatus(
+      `Actualización v${formatUpdateVersion(pendingUpdateVersion)} lista. Pulsa "Reiniciar para actualizar" cuando quieras.`,
+      'info'
+    );
+  }
 });
 
 document.getElementById('btn-clear-fivem-cache').addEventListener('click', async () => {
