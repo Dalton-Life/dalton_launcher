@@ -11,9 +11,7 @@ const updateProgressRow = document.getElementById('update-progress-row');
 const installOverlay = document.getElementById('install-overlay');
 const updateMessage = document.getElementById('update-message');
 const installMessage = document.getElementById('install-message');
-const progressBar = document.getElementById('progress-bar');
 const installProgressBar = document.getElementById('install-progress-bar');
-const progressValue = document.getElementById('progress-value');
 const installProgressValue = document.getElementById('install-progress-value');
 const installStatusLabel = document.getElementById('install-status-label');
 const installStatusPath = document.getElementById('install-status-path');
@@ -140,6 +138,19 @@ function transitionInstallToHome() {
       }
     );
   });
+}
+
+function transitionHomeToInstall() {
+  toggleSettings(false);
+  toggleNotifications(false);
+  stopServerStatusPolling();
+  stopPlayStatePolling();
+
+  homeView.classList.remove('view--active');
+  installView.classList.add('view--active');
+  applyConfigToUi();
+  setInstallStatus('LISTO PARA INSTALAR', config.launcherInstallPath);
+  syncDiscordPresence('launcher');
 }
 
 function toggleSettings(open) {
@@ -605,31 +616,6 @@ function applyConfigToUi() {
   syncDiscordPresence(currentPlayState);
 }
 
-async function runOverlayProgress(overlay, messageEl, barEl, valueEl, message, steps = 5) {
-  updateTitle.textContent = 'ACTUALIZANDO';
-  updateTitle.setAttribute('data-text', 'ACTUALIZANDO');
-  updateHint.textContent = 'No cierres el launcher.';
-  updateSpinner.classList.add('hidden');
-  updateSpinner.setAttribute('aria-hidden', 'true');
-  updateProgressRow.classList.remove('hidden');
-
-  overlay.classList.remove('hidden');
-  overlay.setAttribute('aria-hidden', 'false');
-  messageEl.textContent = message;
-
-  for (let step = 1; step <= steps; step += 1) {
-    const percent = Math.round((step / steps) * 100);
-    barEl.style.width = `${percent}%`;
-    valueEl.textContent = `${percent}%`;
-    await sleep(350);
-  }
-
-  overlay.classList.add('hidden');
-  overlay.setAttribute('aria-hidden', 'true');
-  barEl.style.width = '0%';
-  valueEl.textContent = '0%';
-}
-
 function showBusyOverlay({ title, message, hint = 'No cierres el launcher.' }) {
   updateTitle.textContent = title;
   updateTitle.setAttribute('data-text', title);
@@ -651,28 +637,6 @@ function hideBusyOverlay() {
   updateTitle.textContent = 'ACTUALIZANDO';
   updateTitle.setAttribute('data-text', 'ACTUALIZANDO');
   updateHint.textContent = 'No cierres el launcher.';
-}
-
-async function runProgress(message, steps = 5) {
-  return runOverlayProgress(
-    updateOverlay,
-    updateMessage,
-    progressBar,
-    progressValue,
-    message,
-    steps
-  );
-}
-
-async function runInstallProgress(message, steps = 5) {
-  return runOverlayProgress(
-    installOverlay,
-    installMessage,
-    installProgressBar,
-    installProgressValue,
-    message,
-    steps
-  );
 }
 
 function setInstallOverlayProgress(message, percent) {
@@ -900,6 +864,25 @@ document.getElementById('btn-clear-fivem-cache').addEventListener('click', async
       message: error.message || 'Error inesperado al borrar la caché.'
     });
   }
+});
+
+document.getElementById('btn-uninstall-launcher').addEventListener('click', async () => {
+  const result = await window.dalton.uninstallLauncher();
+
+  if (!result.ok) {
+    if (result.message && result.message !== 'Desinstalación cancelada.') {
+      await window.dalton.showCacheClearResult({
+        ok: false,
+        message: result.message
+      });
+    }
+
+    return;
+  }
+
+  config = await window.dalton.getConfig();
+  config.appVersion = await window.dalton.getVersion();
+  transitionHomeToInstall();
 });
 
 bootstrap();

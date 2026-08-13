@@ -47,7 +47,6 @@ function readConfig() {
     launcherInstalled: false,
     launcherInstallPath: getDefaultLauncherInstallPath(app),
     installPath: path.join(getDefaultLauncherInstallPath(app), 'server'),
-    serverInstalled: false,
     muteBackgroundMusic: false,
     muteButtonSounds: false,
     backgroundMusicVolume: 22,
@@ -82,8 +81,7 @@ function normalizeConfig(config) {
     readNotificationIds: Array.isArray(config.readNotificationIds)
       ? config.readNotificationIds.map(String)
       : [],
-    launcherInstalled: isLauncherInstalled(config, launcherInstallPath),
-    serverInstalled: Boolean(config.serverInstalled)
+    launcherInstalled: isLauncherInstalled(config, launcherInstallPath)
   };
 }
 
@@ -93,6 +91,7 @@ function writeConfig(config) {
   delete persisted.serverPort;
   delete persisted.serverConnect;
   delete persisted.repositories;
+  delete persisted.serverInstalled;
 
   fs.mkdirSync(userDataPath(), { recursive: true });
   fs.writeFileSync(configPath(), JSON.stringify(persisted, null, 2), 'utf8');
@@ -291,7 +290,6 @@ ipcMain.handle('launcher:uninstall', async () => {
 
   writeNormalizedConfig({
     launcherInstalled: false,
-    serverInstalled: false,
     launcherInstallPath: uninstallResult.launcherInstallPath,
     installPath: uninstallResult.installPath
   });
