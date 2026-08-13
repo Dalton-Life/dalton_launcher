@@ -124,29 +124,6 @@ function writeNormalizedConfig(partial) {
   return next;
 }
 
-function ensurePackagedLauncherSetup() {
-  if (!app.isPackaged) {
-    return readNormalizedConfig();
-  }
-
-  const current = readNormalizedConfig();
-
-  if (isLauncherInstalled(readConfig(), current.launcherInstallPath)) {
-    return current;
-  }
-
-  const installResult = installLauncher(app, current, current.launcherInstallPath, {
-    createDesktopShortcut: false,
-    iconPath,
-    projectRoot
-  });
-
-  return writeNormalizedConfig({
-    ...installResult,
-    installPath: installResult.serverInstallPath
-  });
-}
-
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -185,7 +162,7 @@ app.whenReady().then(async () => {
     app.setAppUserModelId('com.dalton.launcher');
   }
 
-  const startupConfig = ensurePackagedLauncherSetup();
+  const startupConfig = readNormalizedConfig();
 
   createWindow();
 
