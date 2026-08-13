@@ -53,6 +53,20 @@ function readConfig() {
   };
 }
 
+function normalizeMusicVolume(value, fallback = 22) {
+  if (value === '' || value === null || value === undefined) {
+    return fallback;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.min(100, Math.max(0, Math.round(parsed)));
+}
+
 function normalizeConfig(config) {
   let launcherInstallPath = resolveInstallRoot(
     config.launcherInstallPath || getDefaultLauncherInstallPath(app),
@@ -76,7 +90,7 @@ function normalizeConfig(config) {
     serverPort,
     muteBackgroundMusic: Boolean(config.muteBackgroundMusic),
     muteButtonSounds: Boolean(config.muteButtonSounds),
-    backgroundMusicVolume: Math.min(100, Math.max(0, Number(config.backgroundMusicVolume) || 22)),
+    backgroundMusicVolume: normalizeMusicVolume(config.backgroundMusicVolume, 22),
     readNotificationIds: Array.isArray(config.readNotificationIds)
       ? config.readNotificationIds.map(String)
       : [],

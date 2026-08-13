@@ -20,7 +20,17 @@ let backgroundMusicMuted = false;
 let backgroundMusicVolume = 0.22;
 
 function clampVolumePercent(value) {
-  return Math.min(100, Math.max(0, Number(value) || 0));
+  if (value === '' || value === null || value === undefined) {
+    return 0;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    return 0;
+  }
+
+  return Math.min(100, Math.max(0, Math.round(parsed)));
 }
 
 function playButtonSound(type) {

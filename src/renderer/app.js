@@ -48,6 +48,20 @@ const SERVER_STATUS_MAX_ATTEMPTS = 3;
 const SERVER_STATUS_INTERVAL_MS = 15000;
 const PLAY_STATE_INTERVAL_MS = 2000;
 
+function clampVolumePercent(value, fallback = 22) {
+  if (value === '' || value === null || value === undefined) {
+    return fallback;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.min(100, Math.max(0, Math.round(parsed)));
+}
+
 function isButtonSoundsMuted() {
   return Boolean(config?.muteButtonSounds);
 }
@@ -57,7 +71,7 @@ function isBackgroundMusicMuted() {
 }
 
 function getBackgroundMusicVolume() {
-  return Math.min(100, Math.max(0, Number(config?.backgroundMusicVolume) || 22));
+  return clampVolumePercent(config?.backgroundMusicVolume, 22);
 }
 
 function getAudioSettings() {
@@ -703,6 +717,10 @@ document.getElementById('btn-settings').addEventListener('click', () => {
   toggleSettings(true);
 });
 
+document.getElementById('btn-settings-install').addEventListener('click', () => {
+  toggleSettings(true);
+});
+
 document.getElementById('btn-close-settings').addEventListener('click', () => {
   toggleSettings(false);
 });
@@ -721,7 +739,8 @@ document.getElementById('mute-music').addEventListener('change', async (event) =
 });
 
 musicVolumeInput.addEventListener('input', (event) => {
-  const volume = Math.min(100, Math.max(0, Number(event.target.value) || 0));
+  const volume = clampVolumePercent(event.target.value, 0);
+  musicVolumeInput.value = String(volume);
   musicVolumeValue.textContent = `${volume}%`;
   window.daltonSounds?.refresh({
     ...getAudioSettings(),
@@ -730,7 +749,9 @@ musicVolumeInput.addEventListener('input', (event) => {
 });
 
 musicVolumeInput.addEventListener('change', async (event) => {
-  const volume = Math.min(100, Math.max(0, Number(event.target.value) || 0));
+  const volume = clampVolumePercent(event.target.value, 0);
+  musicVolumeInput.value = String(volume);
+  updateMusicVolumeUi(volume);
   await saveConfigPartial({ backgroundMusicVolume: volume });
 });
 

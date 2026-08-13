@@ -31,6 +31,9 @@
         <header class="titlebar">
           <div class="titlebar-drag"></div>
           <div class="titlebar-actions">
+            <button class="icon-btn" id="btn-settings-install" title="Ajustes" aria-label="Ajustes">
+              <img src="../assets/setting-icon.svg" alt="" class="icon-btn__image" />
+            </button>
             <button class="icon-btn" id="btn-minimize-install" title="Minimizar" aria-label="Minimizar">
               <img src="../assets/minimizar-icon.svg" alt="" class="icon-btn__image icon-btn__image--minimize" />
             </button>
@@ -224,44 +227,6 @@
           <span id="footer-version">VERSION v0.1.0 — EARLY ACCESS</span>
         </footer>
 
-        <aside id="settings-panel" class="settings-panel" aria-hidden="true">
-          <div class="settings-header">
-            <h2>AJUSTES</h2>
-            <button class="icon-btn" id="btn-close-settings" aria-label="Cerrar ajustes">
-              <img src="../assets/close-icon.svg" alt="" class="icon-btn__image" />
-            </button>
-          </div>
-
-          <h3 class="settings-section">Preferencias</h3>
-          <div class="checkbox-grid">
-            <label><input type="checkbox" id="mute-music" /> Silenciar música de fondo</label>
-            <label><input type="checkbox" id="mute-sfx" /> Silenciar sonidos de botones</label>
-          </div>
-
-          <label class="field-label" for="music-volume">Volumen de música</label>
-          <div class="volume-row">
-            <input
-              id="music-volume"
-              class="settings-range"
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              value="22"
-            />
-            <span class="volume-value" id="music-volume-value">22%</span>
-          </div>
-
-          <div class="settings-actions">
-            <button class="btn-secondary" id="btn-open-fivem-site">Descargar FiveM</button>
-          </div>
-
-          <div class="danger-zone">
-            <h3>Zona peligrosa</h3>
-            <button class="btn-danger" id="btn-clear-fivem-cache">Borrar caché FiveM</button>
-          </div>
-        </aside>
-
         <aside id="notifications-panel" class="notifications-panel side-panel" aria-hidden="true">
           <div class="settings-header">
             <h2>NOTIFICACIONES</h2>
@@ -287,6 +252,44 @@
           </div>
         </section>
       </section>
+
+      <aside id="settings-panel" class="settings-panel" aria-hidden="true">
+        <div class="settings-header">
+          <h2>AJUSTES</h2>
+          <button class="icon-btn" id="btn-close-settings" aria-label="Cerrar ajustes">
+            <img src="../assets/close-icon.svg" alt="" class="icon-btn__image" />
+          </button>
+        </div>
+
+        <h3 class="settings-section">Preferencias</h3>
+        <div class="checkbox-grid">
+          <label><input type="checkbox" id="mute-music" /> Silenciar música de fondo</label>
+          <label><input type="checkbox" id="mute-sfx" /> Silenciar sonidos de botones</label>
+        </div>
+
+        <label class="field-label" for="music-volume">Volumen de música</label>
+        <div class="volume-row">
+          <input
+            id="music-volume"
+            class="settings-range"
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value="22"
+          />
+          <span class="volume-value" id="music-volume-value">22%</span>
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn-secondary" id="btn-open-fivem-site">Descargar FiveM</button>
+        </div>
+
+        <div class="danger-zone">
+          <h3>Zona peligrosa</h3>
+          <button class="btn-danger" id="btn-clear-fivem-cache">Borrar caché FiveM</button>
+        </div>
+      </aside>
     </div>
 
     <script src="renderer/sounds.js"></script>
