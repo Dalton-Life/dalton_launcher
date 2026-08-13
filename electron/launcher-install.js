@@ -9,8 +9,74 @@ function getDefaultLauncherInstallPath(app) {
   return path.join(app.getPath('documents'), LAUNCHER_FOLDER_NAME);
 }
 
-function resolveInstallRoot(targetPath) {
-  const base = path.resolve(targetPath || '');
+function getLauncherManifestPath(installRoot) {
+  return path.join(installRoot, 'install.json');
+}
+
+function readLauncherManifest(installRoot) {
+  const manifestPath = getLauncherManifestPath(installRoot);
+  if (!fs.existsSync(manifestPath)) { return null; }
+
+  try {
+    return JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function getCriticalPaths(app) {
+  const paths = [
+    app.getPath('home'),
+    app.getPath('appData'),
+    app.getPath('userData'),
+    app.getPath('temp'),
+    process.env.SystemRoot,
+    process.env.ProgramFiles,
+    process.env['ProgramFiles(x86)'],
+    path.dirname(app.getPath('exe'))
+  ].filter(Boolean);
+
+  return [...new Set(paths.map((entry) => path.resolve(entry)))];
+}
+
+function validateInstallRoot(installRoot, app, { requireManifest = false } = {}) {
+  if (!installRoot || !app) {
+    return { ok: false, message: 'Ruta de instalación inválida.' };
+  }
+
+  const resolved = path.resolve(installRoot);
+  const folderName = path.basename(resolved);
+
+  if (folderName.toLowerCase() !== LAUNCHER_FOLDER_NAME.toLowerCase()) {
+    return { ok: false, message: 'La carpeta de instalación debe llamarse "Dalton Launcher".' };
+  }
+
+  const normalized = resolved.toLowerCase();
+
+  for (const criticalPath of getCriticalPaths(app)) {
+    if (normalized === criticalPath.toLowerCase()) {
+      return { ok: false, message: 'No se puede usar esa ubicación para instalar el launcher.' };
+    }
+  }
+
+  if (requireManifest) {
+    const manifest = readLauncherManifest(resolved);
+
+    if (!manifest) {
+      return { ok: false, message: 'No se encontró una instalación válida del launcher.' };
+    }
+
+    if (path.resolve(manifest.installPath || '') !== resolved) {
+      return { ok: false, message: 'La ruta de instalación no coincide con el manifiesto.' };
+    }
+  }
+
+  return { ok: true, installRoot: resolved };
+}
+
+function resolveInstallRoot(targetPath, app) {
+  const trimmed = String(targetPath || '').trim();
+  const base = trimmed ? path.resolve(trimmed) : getDefaultLauncherInstallPath(app);
   const folderName = path.basename(base);
 
   if (folderName.toLowerCase() === LAUNCHER_FOLDER_NAME.toLowerCase()) {
@@ -18,10 +84,6 @@ function resolveInstallRoot(targetPath) {
   }
 
   return path.join(base, LAUNCHER_FOLDER_NAME);
-}
-
-function getLauncherManifestPath(installRoot) {
-  return path.join(installRoot, 'install.json');
 }
 
 function isLauncherInstalled(config, installRoot) {
@@ -76,26 +138,36 @@ function removeDesktopShortcut(app) {
 }
 
 function installLauncher(app, config, targetPath, options = {}) {
-  const installRoot = resolveInstallRoot(targetPath);
-  fs.mkdirSync(installRoot, { recursive: true });
+  const installRoot = resolveInstallRoot(targetPath, app);
+  const validation = validateInstallRoot(installRoot, app);
+
+  if (!validation.ok) {
+    throw new Error(validation.message);
+  }
+
+  fs.mkdirSync(validation.installRoot, { recursive: true });
 
   for (const folder of ['data', 'cache', 'logs', 'server']) {
-    fs.mkdirSync(path.join(installRoot, folder), { recursive: true });
+    fs.mkdirSync(path.join(validation.installRoot, folder), { recursive: true });
   }
 
   const manifest = {
     version: app.getVersion(),
     installedAt: new Date().toISOString(),
-    installPath: installRoot,
+    installPath: validation.installRoot,
     desktopShortcut: Boolean(options.createDesktopShortcut)
   };
 
-  fs.writeFileSync(getLauncherManifestPath(installRoot), JSON.stringify(manifest, null, 2), 'utf8');
+  fs.writeFileSync(
+    getLauncherManifestPath(validation.installRoot),
+    JSON.stringify(manifest, null, 2),
+    'utf8'
+  );
 
   if (config?.serverIp?.trim()) {
     try {
       const { writeConnectShortcut } = require('./fivem-launch');
-      writeConnectShortcut(installRoot, config.serverIp, config.serverPort);
+      writeConnectShortcut(validation.installRoot, config.serverIp, config.serverPort);
     } catch {
       // ignore shortcut sync errors
     }
@@ -106,7 +178,7 @@ function installLauncher(app, config, targetPath, options = {}) {
   if (options.createDesktopShortcut) {
     shortcutResult = createDesktopShortcut(
       app,
-      installRoot,
+      validation.installRoot,
       options.iconPath,
       options.projectRoot
     );
@@ -114,27 +186,41 @@ function installLauncher(app, config, targetPath, options = {}) {
 
   return {
     launcherInstalled: true,
-    launcherInstallPath: installRoot,
-    serverInstallPath: path.join(installRoot, 'server'),
+    launcherInstallPath: validation.installRoot,
+    serverInstallPath: path.join(validation.installRoot, 'server'),
     desktopShortcut: Boolean(options.createDesktopShortcut),
     shortcutResult
   };
 }
 
 function uninstallLauncher(config, app) {
-  const installRoot = config?.launcherInstallPath;
+  const defaultPath = getDefaultLauncherInstallPath(app);
+  const resetPaths = {
+    launcherInstallPath: defaultPath,
+    installPath: path.join(defaultPath, 'server')
+  };
+  const validation = validateInstallRoot(config?.launcherInstallPath, app, {
+    requireManifest: true
+  });
 
-  if (installRoot && fs.existsSync(installRoot)) {
-    fs.rmSync(installRoot, { recursive: true, force: true });
+  if (!validation.ok) {
+    return {
+      ok: false,
+      message: validation.message,
+      ...resetPaths
+    };
+  }
+
+  if (fs.existsSync(validation.installRoot)) {
+    fs.rmSync(validation.installRoot, { recursive: true, force: true });
   }
 
   removeDesktopShortcut(app);
 
-  const defaultPath = getDefaultLauncherInstallPath(app);
-
   return {
-    launcherInstallPath: defaultPath,
-    installPath: path.join(defaultPath, 'server')
+    ok: true,
+    message: 'Launcher desinstalado.',
+    ...resetPaths
   };
 }
 
@@ -142,6 +228,7 @@ module.exports = {
   LAUNCHER_FOLDER_NAME,
   getDefaultLauncherInstallPath,
   resolveInstallRoot,
+  validateInstallRoot,
   isLauncherInstalled,
   installLauncher,
   uninstallLauncher,

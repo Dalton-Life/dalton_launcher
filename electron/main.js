@@ -4,6 +4,7 @@ const fs = require('fs');
 const {
   getDefaultLauncherInstallPath,
   resolveInstallRoot,
+  validateInstallRoot,
   isLauncherInstalled,
   installLauncher,
   uninstallLauncher
@@ -62,9 +63,18 @@ function readConfig() {
 }
 
 function normalizeConfig(config) {
-  const launcherInstallPath = resolveInstallRoot(
-    config.launcherInstallPath || getDefaultLauncherInstallPath(app)
+  let launcherInstallPath = resolveInstallRoot(
+    config.launcherInstallPath || getDefaultLauncherInstallPath(app),
+    app
   );
+  const pathValidation = validateInstallRoot(launcherInstallPath, app);
+
+  if (!pathValidation.ok) {
+    launcherInstallPath = getDefaultLauncherInstallPath(app);
+  } else {
+    launcherInstallPath = pathValidation.installRoot;
+  }
+
   const { serverIp, serverPort } = getServerEnv();
 
   return {
@@ -229,47 +239,80 @@ ipcMain.handle('dialog:select-folder', async () => {
 });
 
 ipcMain.handle('launcher:resolve-install-path', (_event, targetPath) => {
-  return resolveInstallRoot(targetPath || getDefaultLauncherInstallPath(app));
+  const resolved = resolveInstallRoot(targetPath || getDefaultLauncherInstallPath(app), app);
+  const validation = validateInstallRoot(resolved, app);
+
+  if (!validation.ok) {
+    return null;
+  }
+
+  return validation.installRoot;
 });
 
 ipcMain.handle('launcher:install', async (_event, options) => {
-  const targetPath = options?.installPath || readNormalizedConfig().launcherInstallPath;
-  const installResult = installLauncher(app, readConfig(), targetPath, {
-    createDesktopShortcut: Boolean(options?.createDesktopShortcut),
-    iconPath,
-    projectRoot
-  });
+  try {
+    const targetPath = options?.installPath || readNormalizedConfig().launcherInstallPath;
+    const installResult = installLauncher(app, readConfig(), targetPath, {
+      createDesktopShortcut: Boolean(options?.createDesktopShortcut),
+      iconPath,
+      projectRoot
+    });
 
-  const next = writeNormalizedConfig({
-    ...installResult,
-    installPath: installResult.serverInstallPath,
-    desktopShortcut: installResult.desktopShortcut
-  });
+    const next = writeNormalizedConfig({
+      ...installResult,
+      installPath: installResult.serverInstallPath,
+      desktopShortcut: installResult.desktopShortcut
+    });
 
-  return {
-    ok: true,
-    message: installResult.desktopShortcut
-      ? 'Launcher instalado y acceso directo creado.'
-      : 'Launcher instalado correctamente.',
-    installPath: next.launcherInstallPath,
-    shortcutCreated: Boolean(installResult.shortcutResult?.ok)
-  };
+    return {
+      ok: true,
+      message: installResult.desktopShortcut
+        ? 'Launcher instalado y acceso directo creado.'
+        : 'Launcher instalado correctamente.',
+      installPath: next.launcherInstallPath,
+      shortcutCreated: Boolean(installResult.shortcutResult?.ok)
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error.message || 'Error al instalar el launcher.'
+    };
+  }
 });
 
 ipcMain.handle('launcher:uninstall', async () => {
   const current = readNormalizedConfig();
-  const resetPaths = uninstallLauncher(current, app);
+  const confirm = await dialog.showMessageBox(mainWindow, {
+    type: 'warning',
+    buttons: ['Cancelar', 'Desinstalar'],
+    defaultId: 0,
+    cancelId: 0,
+    title: 'Desinstalar Dalton Launcher',
+    message: '¿Desinstalar Dalton Launcher?',
+    detail:
+      `Se eliminará la carpeta de instalación y el acceso directo del escritorio.\n\n${current.launcherInstallPath}`
+  });
+
+  if (confirm.response !== 1) {
+    return { ok: false, message: 'Desinstalación cancelada.' };
+  }
+
+  const uninstallResult = uninstallLauncher(current, app);
+
+  if (!uninstallResult.ok) {
+    return uninstallResult;
+  }
 
   writeNormalizedConfig({
     launcherInstalled: false,
     serverInstalled: false,
-    launcherInstallPath: resetPaths.launcherInstallPath,
-    installPath: resetPaths.installPath
+    launcherInstallPath: uninstallResult.launcherInstallPath,
+    installPath: uninstallResult.installPath
   });
 
   return {
     ok: true,
-    message: 'Launcher desinstalado.'
+    message: uninstallResult.message
   };
 });
 
