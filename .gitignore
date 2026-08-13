@@ -9,3 +9,4 @@ Thumbs.db
 !.env.example
 !.env.production.example
 .env.production
+/env

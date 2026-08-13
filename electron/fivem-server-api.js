@@ -2,6 +2,7 @@ const http = require('http');
 const { DEFAULT_PORT } = require('./fivem-launch');
 
 const REQUEST_TIMEOUT_MS = 5000;
+const MAX_RESPONSE_BYTES = 1024 * 1024;
 
 function normalizeServerHost(serverIp) {
   const host = String(serverIp || '').trim().toLowerCase();
@@ -39,9 +40,22 @@ function fetchJson(url) {
       },
       (response) => {
         let body = '';
+        let bodyBytes = 0;
 
         response.setEncoding('utf8');
         response.on('data', (chunk) => {
+          bodyBytes += Buffer.byteLength(chunk, 'utf8');
+          if (bodyBytes > MAX_RESPONSE_BYTES) {
+            response.destroy();
+            request.destroy();
+            reject(
+              Object.assign(new Error('Respuesta del servidor demasiado grande'), {
+                code: 'BODY_TOO_LARGE'
+              })
+            );
+            return;
+          }
+
           body += chunk;
         });
 
@@ -162,7 +176,9 @@ async function getServerStatus(serverIp, serverPort = DEFAULT_PORT) {
           ? 'Tiempo de espera agotado'
           : error.code === 'ECONNREFUSED'
             ? 'Servidor no disponible'
-            : 'Servidor offline'
+            : error.code === 'BODY_TOO_LARGE'
+              ? 'Respuesta del servidor inválida'
+              : 'Servidor offline'
     };
   }
 }
