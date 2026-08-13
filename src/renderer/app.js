@@ -553,6 +553,8 @@ function applyConfigToUi() {
   launcherInstallPathInput.value = config.launcherInstallPath;
   document.getElementById('mute-music').checked = config.muteBackgroundMusic;
   document.getElementById('mute-sfx').checked = config.muteButtonSounds;
+  document.getElementById('btn-uninstall-launcher').classList.toggle('hidden', Boolean(config.packaged));
+  document.getElementById('packaged-uninstall-hint').classList.toggle('hidden', !config.packaged);
   updateMusicVolumeUi(getBackgroundMusicVolume());
   setInstallStatus('LISTO PARA INSTALAR', config.launcherInstallPath);
 

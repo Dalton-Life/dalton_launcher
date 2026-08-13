@@ -161,7 +161,7 @@ async function getServerStatus(serverIp, serverPort = DEFAULT_PORT) {
         error.name === 'AbortError' || error.code === 'ETIMEDOUT'
           ? 'Tiempo de espera agotado'
           : error.code === 'ECONNREFUSED'
-            ? 'No responde en ese IP/puerto'
+            ? 'Servidor no disponible'
             : 'Servidor offline'
     };
   }

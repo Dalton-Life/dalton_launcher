@@ -9,35 +9,60 @@
     "start": "electron .",
     "dev": "electron . --enable-logging",
     "pack": "electron-builder --dir",
+    "predist": "node scripts/prepare-dist.js && node scripts/generate-icon.js",
     "dist": "electron-builder",
     "generate-icon": "node scripts/generate-icon.js"
   },
   "build": {
     "appId": "com.dalton.launcher",
     "productName": "Dalton Launcher",
+    "copyright": "Copyright © Dalton Life",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "assets"
     },
     "files": [
       "electron/**/*",
       "src/**/*",
       "assets/**/*"
     ],
+    "extraResources": [
+      {
+        "from": ".env.production",
+        "to": ".env"
+      }
+    ],
+    "afterPack": "./scripts/after-pack.js",
     "win": {
       "target": [
         "nsis"
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.ico",
+      "publisherName": "Dalton Life",
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "runAfterFinish": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "shortcutName": "Dalton Launcher",
+      "uninstallDisplayName": "Dalton Launcher",
+      "artifactName": "Dalton-Launcher-Setup-${version}.${ext}",
+      "deleteAppDataOnUninstall": false
     }
   },
   "devDependencies": {
     "electron": "^35.0.0",
     "electron-builder": "^25.1.8",
     "png-to-ico": "^3.0.2",
+    "rcedit": "^5.0.2",
     "sharp": "^0.35.3"
   },
   "dependencies": {

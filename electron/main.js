@@ -113,6 +113,29 @@ function writeNormalizedConfig(partial) {
   return next;
 }
 
+function ensurePackagedLauncherSetup() {
+  if (!app.isPackaged) {
+    return readNormalizedConfig();
+  }
+
+  const current = readNormalizedConfig();
+
+  if (isLauncherInstalled(readConfig(), current.launcherInstallPath)) {
+    return current;
+  }
+
+  const installResult = installLauncher(app, current, current.launcherInstallPath, {
+    createDesktopShortcut: false,
+    iconPath,
+    projectRoot
+  });
+
+  return writeNormalizedConfig({
+    ...installResult,
+    installPath: installResult.serverInstallPath
+  });
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -151,9 +174,9 @@ app.whenReady().then(async () => {
     app.setAppUserModelId('com.dalton.launcher');
   }
 
-  createWindow();
+  const startupConfig = ensurePackagedLauncherSetup();
 
-  const startupConfig = readNormalizedConfig();
+  createWindow();
 
   if (startupConfig.launcherInstalled && startupConfig.serverIp?.trim() && startupConfig.launcherInstallPath) {
     try {
@@ -185,7 +208,10 @@ app.on('activate', () => {
 
 ipcMain.handle('app:get-version', () => app.getVersion());
 
-ipcMain.handle('config:get', () => readNormalizedConfig());
+ipcMain.handle('config:get', () => ({
+  ...readNormalizedConfig(),
+  packaged: app.isPackaged
+}));
 
 ipcMain.handle('config:set', (_event, partial) => writeNormalizedConfig(partial));
 

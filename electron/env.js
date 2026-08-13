@@ -5,13 +5,27 @@ const { DEFAULT_PORT } = require('./fivem-launch');
 let loaded = false;
 
 function isPackagedApp() {
-  return process.env.ELECTRON_IS_PACKAGED === '1' || process.defaultApp === false;
+  try {
+    const { app } = require('electron');
+
+    if (typeof app?.isPackaged === 'boolean') {
+      return app.isPackaged;
+    }
+  } catch {
+    // electron not ready yet
+  }
+
+  return process.env.ELECTRON_IS_PACKAGED === '1';
 }
 
 function getEnvCandidates(projectRoot) {
   const candidates = [path.join(projectRoot, '.env')];
 
   if (isPackagedApp()) {
+    if (process.resourcesPath) {
+      candidates.push(path.join(process.resourcesPath, '.env'));
+    }
+
     candidates.push(path.join(path.dirname(process.execPath), '.env'));
   }
 
@@ -73,5 +87,6 @@ function getServerEnv() {
 module.exports = {
   loadEnv,
   getDiscordEnv,
-  getServerEnv
+  getServerEnv,
+  isPackagedApp
 };
