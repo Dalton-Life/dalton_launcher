@@ -38,8 +38,7 @@
       "provider": "github",
       "owner": "Dalton-Life",
       "repo": "dalton_launcher",
-      "releaseType": "release",
-      "private": true
+      "releaseType": "release"
     },
     "win": {
       "target": [

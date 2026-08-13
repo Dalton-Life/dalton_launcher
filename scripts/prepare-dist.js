@@ -17,11 +17,6 @@ if (!/^SERVER_IP=.+/m.test(contents)) {
   process.exit(1);
 }
 
-if (!/^GITHUB_UPDATER_TOKEN=.+/m.test(contents)) {
-  console.error('.env.production must define GITHUB_UPDATER_TOKEN for private GitHub auto-updates.');
-  process.exit(1);
-}
-
 if (/^SERVER_IP=127\.0\.0\.1\s*$/m.test(contents)) {
   console.warn('Warning: SERVER_IP is still 127.0.0.1. Use your public server IP for client builds.');
 }
