@@ -44,5 +44,3 @@ Para builds de distribución, copia `.env.production.example` a `.env.production
 ## Notas
 
 - La IP del servidor se define en `.env` / `.env.production`, no en la UI.
-- **Desinstalar launcher local** (ajustes) elimina la carpeta en Documentos y el acceso directo.
-- Para quitar la aplicación del sistema usa **Configuración de Windows → Aplicaciones**.

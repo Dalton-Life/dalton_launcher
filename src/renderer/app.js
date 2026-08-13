@@ -140,19 +140,6 @@ function transitionInstallToHome() {
   });
 }
 
-function transitionHomeToInstall() {
-  toggleSettings(false);
-  toggleNotifications(false);
-  stopServerStatusPolling();
-  stopPlayStatePolling();
-
-  homeView.classList.remove('view--active');
-  installView.classList.add('view--active');
-  applyConfigToUi();
-  setInstallStatus('LISTO PARA INSTALAR', config.launcherInstallPath);
-  syncDiscordPresence('launcher');
-}
-
 function toggleSettings(open) {
   if (open) {
     toggleNotifications(false);
@@ -864,25 +851,6 @@ document.getElementById('btn-clear-fivem-cache').addEventListener('click', async
       message: error.message || 'Error inesperado al borrar la caché.'
     });
   }
-});
-
-document.getElementById('btn-uninstall-launcher').addEventListener('click', async () => {
-  const result = await window.dalton.uninstallLauncher();
-
-  if (!result.ok) {
-    if (result.message && result.message !== 'Desinstalación cancelada.') {
-      await window.dalton.showCacheClearResult({
-        ok: false,
-        message: result.message
-      });
-    }
-
-    return;
-  }
-
-  config = await window.dalton.getConfig();
-  config.appVersion = await window.dalton.getVersion();
-  transitionHomeToInstall();
 });
 
 bootstrap();

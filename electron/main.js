@@ -6,8 +6,7 @@ const {
   resolveInstallRoot,
   validateInstallRoot,
   isLauncherInstalled,
-  installLauncher,
-  uninstallLauncher
+  installLauncher
 } = require('./launcher-install');
 const { DEFAULT_PORT, isFiveMInstalled, launchDaltonLife, getFiveMPlayState } = require('./fivem-launch');
 const { getServerStatus } = require('./fivem-server-api');
@@ -263,41 +262,6 @@ ipcMain.handle('launcher:install', async (_event, options) => {
       message: error.message || 'Error al instalar el launcher.'
     };
   }
-});
-
-ipcMain.handle('launcher:uninstall', async () => {
-  const current = readNormalizedConfig();
-  const confirm = await dialog.showMessageBox(mainWindow, {
-    type: 'warning',
-    buttons: ['Cancelar', 'Desinstalar'],
-    defaultId: 0,
-    cancelId: 0,
-    title: 'Desinstalar Dalton Launcher',
-    message: '¿Desinstalar Dalton Launcher?',
-    detail:
-      `Se eliminará la carpeta de instalación y el acceso directo del escritorio.\n\n${current.launcherInstallPath}`
-  });
-
-  if (confirm.response !== 1) {
-    return { ok: false, message: 'Desinstalación cancelada.' };
-  }
-
-  const uninstallResult = uninstallLauncher(current, app);
-
-  if (!uninstallResult.ok) {
-    return uninstallResult;
-  }
-
-  writeNormalizedConfig({
-    launcherInstalled: false,
-    launcherInstallPath: uninstallResult.launcherInstallPath,
-    installPath: uninstallResult.installPath
-  });
-
-  return {
-    ok: true,
-    message: uninstallResult.message
-  };
 });
 
 ipcMain.handle('launcher:start-dalton-life', async () => {

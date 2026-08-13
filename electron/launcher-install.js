@@ -136,14 +136,6 @@ $shortcut.Save()
   }
 }
 
-function removeDesktopShortcut(app) {
-  const shortcutPath = getDesktopShortcutPath(app);
-
-  if (fs.existsSync(shortcutPath)) {
-    fs.unlinkSync(shortcutPath);
-  }
-}
-
 function installLauncher(app, _config, targetPath, options = {}) {
   const installRoot = resolveInstallRoot(targetPath, app);
   const validation = validateInstallRoot(installRoot, app);
@@ -191,37 +183,6 @@ function installLauncher(app, _config, targetPath, options = {}) {
   };
 }
 
-function uninstallLauncher(config, app) {
-  const defaultPath = getDefaultLauncherInstallPath(app);
-  const resetPaths = {
-    launcherInstallPath: defaultPath,
-    installPath: path.join(defaultPath, 'server')
-  };
-  const validation = validateInstallRoot(config?.launcherInstallPath, app, {
-    requireManifest: true
-  });
-
-  if (!validation.ok) {
-    return {
-      ok: false,
-      message: validation.message,
-      ...resetPaths
-    };
-  }
-
-  if (fs.existsSync(validation.installRoot)) {
-    fs.rmSync(validation.installRoot, { recursive: true, force: true });
-  }
-
-  removeDesktopShortcut(app);
-
-  return {
-    ok: true,
-    message: 'Launcher desinstalado.',
-    ...resetPaths
-  };
-}
-
 module.exports = {
   LAUNCHER_FOLDER_NAME,
   getDefaultLauncherInstallPath,
@@ -229,7 +190,5 @@ module.exports = {
   validateInstallRoot,
   isLauncherInstalled,
   installLauncher,
-  uninstallLauncher,
-  createDesktopShortcut,
-  removeDesktopShortcut
+  createDesktopShortcut
 };
