@@ -46,13 +46,13 @@
         <main class="home-main install-main">
           <div>
             <span class="brand-kicker">DALTON LIFE</span>
-            <h1 class="brand-title">INSTALAR LAUNCHER</h1>
-            <p class="brand-subtitle">CONFIGURA DALTON CITY EN TU PC</p>
+            <h1 class="brand-title">CONFIGURA DALTON LAUNCHER</h1>
+            <p class="brand-subtitle">PREPARA LA CARPETA DEL LAUNCHER</p>
           </div>
 
           <div class="action-block install-block">
-            <label class="field-label" for="launcher-install-path">Carpeta de instalación</label>
-            <p class="install-hint">Todo se instalará dentro de una carpeta llamada <strong>Dalton Launcher</strong>.</p>
+            <label class="field-label" for="launcher-install-path">Carpeta de datos</label>
+            <p class="install-hint">Se creará una carpeta llamada <strong>Dalton Launcher</strong> con la configuración del launcher y el acceso directo al servidor.</p>
             <div class="path-row install-path-row">
               <input id="launcher-install-path" type="text" readonly />
               <button class="btn-secondary" id="btn-browse-launcher">Examinar</button>
@@ -65,11 +65,11 @@
             </label>
 
             <div class="primary-actions">
-              <button class="cta cta--primary" id="btn-install-launcher">INSTALAR LAUNCHER</button>
+              <button class="cta cta--primary" id="btn-install-launcher">CONTINUAR</button>
             </div>
 
             <div class="status-line">
-              <span id="install-status-label">LISTO PARA INSTALAR</span>
+              <span id="install-status-label">LISTO PARA CONFIGURAR</span>
               <span id="install-status-path"></span>
             </div>
           </div>
@@ -82,8 +82,8 @@
 
         <section id="install-overlay" class="update-overlay hidden" aria-hidden="true">
           <div class="update-card">
-            <h2>INSTALANDO</h2>
-            <p id="install-message">Preparando Dalton Launcher...</p>
+            <h2>CONFIGURANDO</h2>
+            <p id="install-message">Preparando tu carpeta de juego...</p>
             <div class="progress-row">
               <div class="progress-track">
                 <div id="install-progress-bar" class="progress-fill"></div>

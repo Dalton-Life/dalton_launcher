@@ -82,7 +82,6 @@ function readConfig() {
   return {
     launcherInstalled: false,
     launcherInstallPath: getDefaultLauncherInstallPath(app),
-    installPath: path.join(getDefaultLauncherInstallPath(app), 'server'),
     muteBackgroundMusic: false,
     muteButtonSounds: false,
     backgroundMusicVolume: 22,
@@ -115,7 +114,6 @@ function normalizeConfig(config) {
   return {
     ...config,
     launcherInstallPath,
-    installPath: config.installPath || path.join(launcherInstallPath, 'server'),
     fivemAppPath: fivemAppPath || undefined,
     serverIp,
     serverPort,
@@ -136,6 +134,7 @@ function writeConfig(config) {
   delete persisted.serverConnect;
   delete persisted.repositories;
   delete persisted.serverInstalled;
+  delete persisted.installPath;
 
   fs.mkdirSync(userDataPath(), { recursive: true });
   fs.writeFileSync(configPath(), JSON.stringify(persisted, null, 2), 'utf8');
@@ -304,8 +303,8 @@ trustedHandle(ipcMain, 'launcher:install', async (_event, options) => {
     }
 
     const next = await writeNormalizedConfig({
-      ...installResult,
-      installPath: installResult.serverInstallPath
+      launcherInstalled: installResult.launcherInstalled,
+      launcherInstallPath: installResult.launcherInstallPath
     });
 
     return {
@@ -320,7 +319,7 @@ trustedHandle(ipcMain, 'launcher:install', async (_event, options) => {
   } catch (error) {
     return {
       ok: false,
-      message: error.message || 'Error al instalar el launcher.'
+      message: error.message || 'Error al configurar el launcher.'
     };
   }
 });
@@ -329,7 +328,7 @@ trustedHandle(ipcMain, 'launcher:start-dalton-life', async () => {
   const config = readNormalizedConfig();
 
   if (!config.launcherInstalled) {
-    return { ok: false, message: 'Instala el launcher primero.' };
+    return { ok: false, message: 'Completa la configuración inicial primero.' };
   }
 
   if (!config.serverIp?.trim()) {

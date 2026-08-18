@@ -30,21 +30,21 @@ function getCriticalPaths(app) {
 
 function validateInstallRoot(installRoot, app) {
   if (!installRoot || !app) {
-    return { ok: false, message: 'Ruta de instalación inválida.' };
+    return { ok: false, message: 'Ruta de carpeta inválida.' };
   }
 
   const resolved = path.resolve(installRoot);
   const folderName = path.basename(resolved);
 
   if (folderName.toLowerCase() !== LAUNCHER_FOLDER_NAME.toLowerCase()) {
-    return { ok: false, message: 'La carpeta de instalación debe llamarse "Dalton Launcher".' };
+    return { ok: false, message: 'La carpeta debe llamarse "Dalton Launcher".' };
   }
 
   const normalized = resolved.toLowerCase();
 
   for (const criticalPath of getCriticalPaths(app)) {
     if (normalized === criticalPath.toLowerCase()) {
-      return { ok: false, message: 'No se puede usar esa ubicación para instalar el launcher.' };
+      return { ok: false, message: 'No se puede usar esa ubicación para la carpeta de datos.' };
     }
   }
 
@@ -123,10 +123,6 @@ function installLauncher(app, _config, targetPath, options = {}) {
 
   fs.mkdirSync(validation.installRoot, { recursive: true });
 
-  for (const folder of ['data', 'cache', 'logs', 'server']) {
-    fs.mkdirSync(path.join(validation.installRoot, folder), { recursive: true });
-  }
-
   const manifest = {
     version: app.getVersion(),
     installedAt: new Date().toISOString(),
@@ -154,7 +150,6 @@ function installLauncher(app, _config, targetPath, options = {}) {
   return {
     launcherInstalled: true,
     launcherInstallPath: validation.installRoot,
-    serverInstallPath: path.join(validation.installRoot, 'server'),
     desktopShortcut: Boolean(options.createDesktopShortcut),
     shortcutResult
   };

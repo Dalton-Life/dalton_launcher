@@ -1003,7 +1003,7 @@ function applyConfigToUi() {
   document.getElementById("mute-music").checked = config.muteBackgroundMusic;
   document.getElementById("mute-sfx").checked = config.muteButtonSounds;
   updateMusicVolumeUi(getBackgroundMusicVolume());
-  setInstallStatus("LISTO PARA INSTALAR", config.launcherInstallPath);
+  setInstallStatus("LISTO PARA CONFIGURAR", config.launcherInstallPath);
 
   if (homeView.classList.contains("view--active")) {
     refreshServerStatus();
@@ -1324,7 +1324,7 @@ document
 
     if (!result?.ok) {
       setInstallStatus(
-        result?.message || "No se pudo usar esa carpeta de instalación.",
+        result?.message || "No se pudo usar esa carpeta de datos.",
         config.launcherInstallPath,
       );
       return;
@@ -1371,16 +1371,16 @@ btnInstallLauncher.addEventListener("click", async () => {
   }
 
   btnInstallLauncher.disabled = true;
-  setInstallStatus("INSTALANDO...", config.launcherInstallPath);
+  setInstallStatus("CONFIGURANDO...", config.launcherInstallPath);
 
   const createDesktopShortcut = document.getElementById(
     "create-desktop-shortcut",
   ).checked;
 
-  setInstallOverlayProgress("Preparando instalación...", 10);
+  setInstallOverlayProgress("Preparando configuración...", 10);
 
   try {
-    setInstallOverlayProgress("Creando carpetas del launcher...", 40);
+    setInstallOverlayProgress("Guardando configuración...", 40);
 
     const result = await window.dalton.installLauncher({
       installPath: config.launcherInstallPath,
@@ -1390,7 +1390,7 @@ btnInstallLauncher.addEventListener("click", async () => {
     if (!result.ok) {
       hideInstallOverlay();
       setInstallStatus(
-        result.message || "ERROR DE INSTALACIÓN",
+        result.message || "ERROR DE CONFIGURACIÓN",
         config.launcherInstallPath,
       );
       return;
@@ -1399,7 +1399,7 @@ btnInstallLauncher.addEventListener("click", async () => {
     setInstallOverlayProgress(
       createDesktopShortcut
         ? "Acceso directo creado. Finalizando..."
-        : "Instalación completada.",
+        : "Configuración completada.",
       100,
     );
 
@@ -1422,7 +1422,7 @@ btnInstallLauncher.addEventListener("click", async () => {
   } catch (error) {
     hideInstallOverlay();
     setInstallStatus(
-      error.message || "ERROR DE INSTALACIÓN",
+      error.message || "ERROR DE CONFIGURACIÓN",
       config.launcherInstallPath,
     );
   } finally {
