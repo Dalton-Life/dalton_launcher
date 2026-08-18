@@ -996,10 +996,13 @@ async function loadNotifications() {
 }
 
 function applyConfigToUi() {
+  if (!config) {
+    return;
+  }
   const versionLabel = formatVersionLabel(appVersion);
   footerVersion.textContent = versionLabel;
   installFooterVersion.textContent = versionLabel;
-  launcherInstallPathInput.value = config.launcherInstallPath;
+  launcherInstallPathInput.value = String(config.launcherInstallPath || "").trim();
   document.getElementById("mute-music").checked = config.muteBackgroundMusic;
   document.getElementById("mute-sfx").checked = config.muteButtonSounds;
   updateMusicVolumeUi(getBackgroundMusicVolume());
@@ -1144,7 +1147,7 @@ async function runStartupUpdateCheck() {
 }
 
 function setupUpdaterListeners() {
-  if (!window.dalton.onUpdaterEvent) {
+  if (!window.dalton?.onUpdaterEvent) {
     return () => {};
   }
 
@@ -1233,6 +1236,10 @@ async function saveConfigPartial(partial) {
 }
 
 async function bootstrap() {
+  if (!window.dalton?.getConfig) {
+    throw new Error("No se pudo inicializar el launcher.");
+  }
+
   const unsubscribeUpdater = setupUpdaterListeners();
   window.addEventListener("beforeunload", unsubscribeUpdater);
   renderSocialLinks();
@@ -1269,6 +1276,7 @@ async function bootstrap() {
   stopPlayStatePolling();
   syncDiscordPresence("launcher");
   await transitionToInstall();
+  applyConfigToUi();
 }
 
 document.getElementById("btn-minimize").addEventListener("click", () => {
@@ -1583,4 +1591,13 @@ bootstrap().catch(async (error) => {
   console.error("[bootstrap]", error);
   splashView.classList.remove("view--active", "splash-exit");
   installView.classList.add("view--active");
+
+  try {
+    if (window.dalton?.getConfig) {
+      config = await window.dalton.getConfig();
+      applyConfigToUi();
+    }
+  } catch {
+    // ignore fallback config errors
+  }
 });

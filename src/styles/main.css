@@ -94,6 +94,7 @@ input {
   flex-direction: column;
   background: #000;
   z-index: 20;
+  pointer-events: none;
 }
 
 #splash-view.view--active {
@@ -141,10 +142,12 @@ input {
 #splash-view.splash-exit,
 #install-view.splash-exit {
   animation: splash-view-out 0.75s ease forwards;
+  pointer-events: none;
 }
 
 #install-view.view--active {
   display: block;
+  z-index: 10;
 }
 
 .install-block {
@@ -185,6 +188,7 @@ input {
 
 #home-view.view--active {
   display: block;
+  z-index: 10;
 }
 
 #home-view.home-enter {
@@ -243,6 +247,11 @@ input {
   to {
     opacity: 1;
   }
+}
+
+.bg-layer,
+.bg-overlay {
+  pointer-events: none;
 }
 
 .bg-layer {

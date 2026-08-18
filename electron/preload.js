@@ -1,5 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
-const { DEFAULT_SERVER_PORT } = require('./constants');
+const DEFAULT_SERVER_PORT = 30120;
+
 contextBridge.exposeInMainWorld('dalton', {
   defaultServerPort: DEFAULT_SERVER_PORT,
   getVersion: () => ipcRenderer.invoke('app:get-version'),
