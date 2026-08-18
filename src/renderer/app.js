@@ -1,4 +1,6 @@
 const splashView = document.getElementById("splash-view");
+const splashTagline = document.querySelector(".splash-tagline");
+const DEFAULT_SPLASH_TAGLINE = "ROLEPLAY SERVER";
 const installView = document.getElementById("install-view");
 const homeView = document.getElementById("home-view");
 const settingsPanel = document.getElementById("settings-panel");
@@ -52,8 +54,8 @@ let pendingUpdateVersion = null;
 let pendingUpdateReleaseNotes = null;
 let pendingUpdateBannerVisible = false;
 let resolveStartupUpdateCheck = null;
+let startupUpdateAwaitingDownload = false;
 let toastActionHandler = null;
-const STARTUP_UPDATE_TIMEOUT_MS = 20000;
 const FIVEM_DOWNLOAD_URL = "https://fivem.net/";
 const SOCIAL_LINKS = [
   {
@@ -86,6 +88,7 @@ const launcherInstallPathInput = document.getElementById(
 );
 const btnInstallLauncher = document.getElementById("btn-install-launcher");
 const btnStartDalton = document.getElementById("btn-start-dalton");
+const startActionBlock = btnStartDalton?.closest(".action-block");
 const serverStatusDot = document.getElementById("server-status-dot");
 const serverStatusText = document.getElementById("server-status-text");
 const serverPlayers = document.getElementById("server-players");
@@ -675,6 +678,10 @@ function setServerCardChecking(initial = false) {
   serverStatusText.textContent = "Verificando";
   serverPlayers.textContent = "—";
 
+  if (currentPlayState === "idle" && !launchPending) {
+    setStartActionVisible(false);
+  }
+
   if (initial) {
     updateServerPing(null);
   }
@@ -833,6 +840,10 @@ function stopServerStatusPolling() {
   }
 }
 
+function setStartActionVisible(visible) {
+  startActionBlock?.classList.toggle("hidden", !visible);
+}
+
 function updateStartButton(state) {
   currentPlayState = state;
   btnStartDalton.classList.remove(
@@ -842,6 +853,7 @@ function updateStartButton(state) {
   );
 
   if (state === "running") {
+    setStartActionVisible(true);
     btnStartDalton.disabled = true;
     btnStartDalton.classList.add("cta--running");
     btnStartDalton.textContent = "EN EJECUCIÓN";
@@ -851,6 +863,7 @@ function updateStartButton(state) {
   }
 
   if (state === "connecting") {
+    setStartActionVisible(true);
     btnStartDalton.disabled = true;
     btnStartDalton.classList.add("cta--connecting");
     btnStartDalton.textContent = "CONECTANDO...";
@@ -861,14 +874,14 @@ function updateStartButton(state) {
 
   updateServerCardConnectingAnimation(false);
 
-  if (hasDisplayedServerStatus && lastServerOnlineState === false) {
+  if (!hasDisplayedServerStatus || lastServerOnlineState !== true) {
+    setStartActionVisible(false);
     btnStartDalton.disabled = true;
-    btnStartDalton.classList.add("cta--offline");
-    btnStartDalton.textContent = "SERVIDOR OFFLINE";
     syncDiscordPresence(state);
     return;
   }
 
+  setStartActionVisible(true);
   btnStartDalton.disabled = false;
   btnStartDalton.textContent = "INICIAR DALTON LIFE";
   syncDiscordPresence(state);
@@ -1121,6 +1134,14 @@ function setUpdateOverlayProgress(percent, transferred, total) {
   setUpdateSize(transferred, total);
 }
 
+function setSplashStatus(message = DEFAULT_SPLASH_TAGLINE) {
+  if (!splashTagline || !splashView.classList.contains("view--active")) {
+    return;
+  }
+
+  splashTagline.textContent = message;
+}
+
 function resolveStartupUpdateCheckIfNeeded() {
   if (resolveStartupUpdateCheck) {
     resolveStartupUpdateCheck();
@@ -1135,15 +1156,19 @@ function waitForStartupUpdateCheck() {
 }
 
 async function runStartupUpdateCheck() {
-  if (!config?.packaged) {
+  startupUpdateAwaitingDownload = false;
+  setSplashStatus("COMPROBANDO ACTUALIZACIONES...");
+
+  const waitPromise = waitForStartupUpdateCheck();
+  const result = await window.dalton.checkForUpdates({ startup: true });
+
+  if (result?.skipped) {
+    setSplashStatus();
     return;
   }
 
-  const waitPromise = waitForStartupUpdateCheck();
-  void window.dalton.checkForUpdates({ startup: true });
-
-  await Promise.race([waitPromise, sleep(STARTUP_UPDATE_TIMEOUT_MS)]);
-  resolveStartupUpdateCheckIfNeeded();
+  await waitPromise;
+  setSplashStatus();
 }
 
 function setupUpdaterListeners() {
@@ -1154,7 +1179,9 @@ function setupUpdaterListeners() {
   return window.dalton.onUpdaterEvent((event) => {
     switch (event.type) {
       case "checking":
-        if (event.manual) {
+        if (event.startup) {
+          setSplashStatus("COMPROBANDO ACTUALIZACIONES...");
+        } else if (event.manual) {
           clearUpdateStatus();
           hideUpdateToast();
           setManualUpdateChecking(true);
@@ -1164,10 +1191,19 @@ function setupUpdaterListeners() {
         setManualUpdateChecking(false);
         hideUpdateToast();
         setUpdateFeedbackActions();
-        resolveStartupUpdateCheckIfNeeded();
         pendingUpdateReleaseNotes = event.releaseNotes || null;
         setUpdateNotes(null, false);
         clearUpdateSize();
+
+        if (event.startup) {
+          startupUpdateAwaitingDownload = true;
+          setSplashStatus(
+            `DESCARGANDO v${formatUpdateVersion(event.version)}...`,
+          );
+          break;
+        }
+
+        resolveStartupUpdateCheckIfNeeded();
         showUpdateOverlay({
           title: "ACTUALIZANDO",
           message: `Descargando v${formatUpdateVersion(event.version)}...`,
@@ -1176,10 +1212,21 @@ function setupUpdaterListeners() {
         setUpdateOverlayProgress(0, 0, 0);
         break;
       case "progress":
+        if (startupUpdateAwaitingDownload) {
+          setSplashStatus(
+            `DESCARGANDO ACTUALIZACIÓN ${Math.round(Number(event.percent) || 0)}%`,
+          );
+        }
         setUpdateOverlayProgress(event.percent, event.transferred, event.total);
         break;
       case "downloaded":
         setManualUpdateChecking(false);
+
+        if (startupUpdateAwaitingDownload) {
+          startupUpdateAwaitingDownload = false;
+          resolveStartupUpdateCheckIfNeeded();
+        }
+
         showUpdateReady(
           event.version,
           event.releaseNotes || pendingUpdateReleaseNotes,
@@ -1196,6 +1243,7 @@ function setupUpdaterListeners() {
         break;
       case "error":
         setManualUpdateChecking(false);
+        startupUpdateAwaitingDownload = false;
         resolveStartupUpdateCheckIfNeeded();
         hideUpdateOverlay();
         showUpdateError(
@@ -1259,13 +1307,11 @@ async function bootstrap() {
   window.daltonSounds.init(getAudioSettings());
   syncDiscordPresence("launcher");
 
-  const startupTasks = [sleep(getSplashDelayMs())];
+  await sleep(getSplashDelayMs());
 
   if (config?.packaged && config.launcherInstalled) {
-    startupTasks.push(runStartupUpdateCheck());
+    await runStartupUpdateCheck();
   }
-
-  await Promise.all(startupTasks);
 
   if (config.launcherInstalled) {
     await transitionToHome();

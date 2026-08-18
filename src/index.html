@@ -160,7 +160,7 @@
             <p class="server-card__players" id="server-players">—</p>
           </div>
 
-          <div class="action-block">
+          <div class="action-block hidden">
             <div class="primary-actions">
               <button class="cta cta--primary" id="btn-start-dalton">INICIAR DALTON LIFE</button>
             </div>
@@ -213,16 +213,20 @@
         </div>
 
         <h3 class="settings-section">Preferencias</h3>
-        <div class="checkbox-grid">
-          <label class="checkbox-option">
-            <input type="checkbox" id="mute-music" />
-            <span class="checkbox-option__box" aria-hidden="true"></span>
-            <span class="checkbox-option__label">Silenciar música de fondo</span>
+        <div class="settings-toggles">
+          <label class="settings-toggle" for="mute-music">
+            <span class="settings-toggle__label">Silenciar música de fondo</span>
+            <input type="checkbox" class="settings-toggle__input" id="mute-music" />
+            <span class="settings-toggle__track" aria-hidden="true">
+              <span class="settings-toggle__thumb"></span>
+            </span>
           </label>
-          <label class="checkbox-option">
-            <input type="checkbox" id="mute-sfx" />
-            <span class="checkbox-option__box" aria-hidden="true"></span>
-            <span class="checkbox-option__label">Silenciar sonidos de botones</span>
+          <label class="settings-toggle" for="mute-sfx">
+            <span class="settings-toggle__label">Silenciar sonidos de botones</span>
+            <input type="checkbox" class="settings-toggle__input" id="mute-sfx" />
+            <span class="settings-toggle__track" aria-hidden="true">
+              <span class="settings-toggle__thumb"></span>
+            </span>
           </label>
         </div>
 
