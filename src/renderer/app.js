@@ -1259,12 +1259,17 @@ async function bootstrap() {
   window.daltonSounds.init(getAudioSettings());
   syncDiscordPresence("launcher");
 
-  await sleep(getSplashDelayMs());
+  const startupTasks = [sleep(getSplashDelayMs())];
+
+  if (config?.packaged && config.launcherInstalled) {
+    startupTasks.push(runStartupUpdateCheck());
+  }
+
+  await Promise.all(startupTasks);
 
   if (config.launcherInstalled) {
     await transitionToHome();
     await checkFiveMInstalledOnHome();
-    void runStartupUpdateCheck();
     syncDiscordPresence("idle");
     startServerStatusPolling();
     startPlayStatePolling();
