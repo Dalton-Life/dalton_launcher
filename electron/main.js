@@ -25,6 +25,7 @@ const {
 } = require('./auto-updater');
 const { lockRendererNavigation } = require('./secure-window');
 const { createIpcTrust } = require('./ipc-trust');
+const { clampVolumePercent } = require('./volume');
 const {
   configureAppPaths,
   configureSingleInstance,
@@ -89,20 +90,6 @@ function readConfig() {
   };
 }
 
-function normalizeMusicVolume(value, fallback = 22) {
-  if (value === '' || value === null || value === undefined) {
-    return fallback;
-  }
-
-  const parsed = Number(value);
-
-  if (!Number.isFinite(parsed)) {
-    return fallback;
-  }
-
-  return Math.min(100, Math.max(0, Math.round(parsed)));
-}
-
 function getFiveMOptions(config = readNormalizedConfig()) {
   const fivemAppPath = String(config.fivemAppPath || '').trim();
 
@@ -134,7 +121,7 @@ function normalizeConfig(config) {
     serverPort,
     muteBackgroundMusic: Boolean(config.muteBackgroundMusic),
     muteButtonSounds: Boolean(config.muteButtonSounds),
-    backgroundMusicVolume: normalizeMusicVolume(config.backgroundMusicVolume, 22),
+    backgroundMusicVolume: clampVolumePercent(config.backgroundMusicVolume, 22),
     readNotificationIds: Array.isArray(config.readNotificationIds)
       ? config.readNotificationIds.map(String)
       : [],

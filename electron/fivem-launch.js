@@ -1,8 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync, spawn } = require('child_process');
-
-const DEFAULT_PORT = 30120;
+const { DEFAULT_SERVER_PORT: DEFAULT_PORT } = require('./constants');
 const CONNECT_SHORTCUT_NAME = 'Dalton Life.url';
 const SERVER_NOT_CONFIGURED_MESSAGE =
   'Servidor no configurado en esta versión del launcher. Contacta al equipo de Dalton.';

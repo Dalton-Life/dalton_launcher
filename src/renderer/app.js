@@ -387,10 +387,6 @@ function setManualUpdateChecking(isChecking) {
     : "Buscar actualizaciones";
 }
 
-function clampVolumePercent(value, fallback = 22) {
-  return window.daltonSounds?.clampVolumePercent?.(value, fallback) ?? fallback;
-}
-
 function isButtonSoundsMuted() {
   return Boolean(config?.muteButtonSounds);
 }
@@ -400,7 +396,10 @@ function isBackgroundMusicMuted() {
 }
 
 function getBackgroundMusicVolume() {
-  return clampVolumePercent(config?.backgroundMusicVolume, 22);
+  return window.daltonSounds?.clampVolumePercent?.(
+    config?.backgroundMusicVolume,
+    22,
+  ) ?? 22;
 }
 
 function getAudioSettings() {
@@ -1342,7 +1341,8 @@ document
   });
 
 musicVolumeInput.addEventListener("input", (event) => {
-  const volume = clampVolumePercent(event.target.value, 0);
+  const volume =
+    window.daltonSounds?.clampVolumePercent?.(event.target.value, 0) ?? 0;
   musicVolumeInput.value = String(volume);
   musicVolumeValue.textContent = `${volume}%`;
   window.daltonSounds?.refresh({
@@ -1352,7 +1352,8 @@ musicVolumeInput.addEventListener("input", (event) => {
 });
 
 musicVolumeInput.addEventListener("change", async (event) => {
-  const volume = clampVolumePercent(event.target.value, 0);
+  const volume =
+    window.daltonSounds?.clampVolumePercent?.(event.target.value, 0) ?? 0;
   musicVolumeInput.value = String(volume);
   updateMusicVolumeUi(volume);
   await saveConfigPartial({ backgroundMusicVolume: volume });
