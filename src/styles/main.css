@@ -183,14 +183,6 @@ input {
   user-select: text;
 }
 
-.install-main .field-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-family: var(--AkrobatSemiBold), var(--font);
-  font-size: 0.78rem;
-  color: var(--muted);
-}
-
 #home-view.view--active {
   display: block;
 }
@@ -310,7 +302,6 @@ input {
   color: var(--PrimaryColor);
 }
 
-.icon-btn img,
 .icon-btn__image {
   display: block;
   height: 15px;
@@ -875,7 +866,6 @@ input {
   cursor: pointer;
 }
 
-.settings-range--disabled,
 .settings-range:disabled {
   opacity: 0.45;
   cursor: not-allowed;

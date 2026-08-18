@@ -281,14 +281,14 @@ function refreshPendingUpdateBadge() {
 
 function showUpdateToast(
   message,
-  { type = "error", retry = false, actionLabel = "", onAction = null } = {},
+  { retry = false, actionLabel = "", onAction = null } = {},
 ) {
   if (!updateToast || !updateToastMessage) {
     return;
   }
 
   updateToastMessage.textContent = message;
-  updateToast.className = `update-toast update-toast--${type}`;
+  updateToast.className = "update-toast";
   updateToast.classList.remove("hidden");
 
   const hasCustomAction = Boolean(actionLabel && onAction);
@@ -321,14 +321,13 @@ function showLaunchError(message) {
 
   if (isFiveMInstallError(text)) {
     showUpdateToast(text, {
-      type: "error",
       actionLabel: "Descargar FiveM",
       onAction: () => window.dalton.openExternal(FIVEM_DOWNLOAD_URL),
     });
     return;
   }
 
-  showUpdateToast(text, { type: "error" });
+  showUpdateToast(text);
 }
 
 function setUpdateStatus(message, type = "info") {
@@ -358,7 +357,7 @@ function showUpdateError(message, { manual = false, startup = false } = {}) {
   }
 
   if (manual || startup) {
-    showUpdateToast(message, { type: "error", retry: true });
+    showUpdateToast(message, { retry: true });
   }
 }
 
@@ -416,10 +415,6 @@ function updateMusicVolumeUi(volume = getBackgroundMusicVolume()) {
   musicVolumeInput.value = String(volume);
   musicVolumeValue.textContent = `${volume}%`;
   musicVolumeInput.disabled = isBackgroundMusicMuted();
-  musicVolumeInput.classList.toggle(
-    "settings-range--disabled",
-    isBackgroundMusicMuted(),
-  );
 }
 
 function refreshAudioSettings() {
