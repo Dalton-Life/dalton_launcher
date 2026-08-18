@@ -124,8 +124,6 @@ async function getServerStatus(serverIp, serverPort = DEFAULT_PORT) {
     };
   }
 
-  const endpoint = `${base.ip}:${base.port}`;
-
   try {
     const { data: dynamic, ping } = await fetchFirstAvailable([
       `${base.baseUrl}/dynamic.json`,
@@ -146,7 +144,6 @@ async function getServerStatus(serverIp, serverPort = DEFAULT_PORT) {
 
     return {
       online: true,
-      endpoint,
       hostname: parsed.hostname,
       clients: parsed.clients,
       maxClients: parsed.maxClients,
@@ -155,7 +152,6 @@ async function getServerStatus(serverIp, serverPort = DEFAULT_PORT) {
   } catch (error) {
     return {
       online: false,
-      endpoint,
       ping: null,
       error:
         error.name === 'AbortError' || error.code === 'ETIMEDOUT'

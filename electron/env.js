@@ -87,6 +87,5 @@ function getServerEnv() {
 module.exports = {
   loadEnv,
   getDiscordEnv,
-  getServerEnv,
-  isPackagedApp
+  getServerEnv
 };

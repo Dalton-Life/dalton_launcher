@@ -628,13 +628,6 @@ async function markAllNotificationsRead() {
   updateNotificationBadge();
 }
 
-function getServerEndpoint() {
-  const ip = String(config?.serverIp || "").trim();
-  const port =
-    Number(config?.serverPort) || window.dalton?.defaultServerPort || 30120;
-  return ip ? `${ip}:${port}` : "";
-}
-
 function getPingLevel(ping) {
   if (ping == null || Number.isNaN(ping)) return "none";
   if (ping <= 80) return "good";
@@ -805,7 +798,6 @@ async function refreshServerStatusNow() {
 
     applyServerStatus({
       online: false,
-      endpoint: getServerEndpoint(),
       error: error?.message || "Error consultando servidor",
     });
   }
@@ -993,13 +985,6 @@ function renderNotifications(items = notificationItems) {
       `;
     })
     .join("");
-
-  notificationsList.querySelectorAll("[data-social-url]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const url = button.getAttribute("data-social-url");
-      if (url) window.dalton.openExternal(url);
-    });
-  });
 
   window.daltonSounds?.attachButtonSounds?.(notificationsList);
   updateNotificationBadge();
@@ -1254,7 +1239,8 @@ async function saveConfigPartial(partial) {
 }
 
 async function bootstrap() {
-  setupUpdaterListeners();
+  const unsubscribeUpdater = setupUpdaterListeners();
+  window.addEventListener("beforeunload", unsubscribeUpdater);
   renderSocialLinks();
   setupSidePanelKeyboard();
 
