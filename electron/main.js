@@ -17,6 +17,8 @@ const {
   syncDiscordPresence
 } = require('./discord-presence');
 const { loadEnv, getServerEnv } = require('./env');
+const { getCrateStatus, openCrate } = require('./crates-api');
+const { randomUUID } = require('crypto');
 const { parseAllowedExternalUrl } = require('./safe-url');
 const {
   initAutoUpdater,
@@ -123,6 +125,9 @@ function normalizeConfig(config) {
     readNotificationIds: Array.isArray(config.readNotificationIds)
       ? config.readNotificationIds.map(String)
       : [],
+    crateDeviceId: /^[a-zA-Z0-9-]{8,80}$/.test(String(config.crateDeviceId || '').trim())
+      ? String(config.crateDeviceId).trim()
+      : randomUUID(),
     launcherInstalled: isLauncherInstalled(config, launcherInstallPath)
   };
 }
@@ -202,9 +207,29 @@ function createWindow() {
     mainWindow.show();
   });
 
-  if (isDev) {
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    const toggleDevTools =
+      input.type === 'keyDown' &&
+      (input.key === 'F12' ||
+        (input.control && input.shift && String(input.key).toLowerCase() === 'i'));
+
+    if (!toggleDevTools) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (!isDev) {
+      return;
+    }
+
+    if (mainWindow.webContents.isDevToolsOpened()) {
+      mainWindow.webContents.closeDevTools();
+      return;
+    }
+
     mainWindow.webContents.openDevTools({ mode: 'detach' });
-  }
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -249,10 +274,19 @@ trustedHandle(ipcMain, 'updater:install', () => {
   return { ok: true };
 });
 
-trustedHandle(ipcMain, 'config:get', () => ({
-  ...readNormalizedConfig(),
-  packaged: app.isPackaged
-}));
+trustedHandle(ipcMain, 'config:get', () => {
+  const config = readNormalizedConfig();
+  const stored = readConfig();
+
+  if (stored.crateDeviceId !== config.crateDeviceId) {
+    writeConfig(config);
+  }
+
+  return {
+    ...config,
+    packaged: app.isPackaged
+  };
+});
 
 trustedHandle(ipcMain, 'config:set', async (_event, partial) => writeNormalizedConfig(partial));
 
@@ -384,6 +418,24 @@ trustedHandle(ipcMain, 'fivem:show-cache-result', async (_event, result) => {
     title: result.ok ? 'Caché borrada' : 'Error al borrar caché',
     message: result.message
   });
+});
+
+trustedHandle(ipcMain, 'crates:status', async () => {
+  try {
+    const { crateDeviceId } = readNormalizedConfig();
+    return await getCrateStatus(crateDeviceId);
+  } catch (error) {
+    return { ok: false, error: error.message || 'Error consultando la caja' };
+  }
+});
+
+trustedHandle(ipcMain, 'crates:open', async () => {
+  try {
+    const { crateDeviceId } = readNormalizedConfig();
+    return await openCrate(crateDeviceId);
+  } catch (error) {
+    return { ok: false, error: error.message || 'No se pudo abrir la caja' };
+  }
 });
 
 trustedHandle(ipcMain, 'fivem:get-server-status', async () => {

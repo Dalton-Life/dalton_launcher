@@ -94,6 +94,7 @@ window.daltonSounds = {
   refresh(settings = {}) {
     applyAudioSettings(settings);
   },
+  play: playButtonSound,
   attachButtonSounds,
   clampVolumePercent
 };

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; media-src 'self';"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data: http: https:; media-src 'self';"
     />
     <title>Dalton Launcher</title>
     <link rel="stylesheet" href="styles/main.css" />
@@ -124,6 +124,16 @@
           </div>
         </header>
 
+        <div class="crate-card crate-card--compact" id="crate-card" aria-live="polite">
+          <div class="crate-card__header">
+            <span class="crate-card__kicker">EXCLUSIVO LAUNCHER</span>
+            <span class="crate-card__state" id="crate-state">—</span>
+          </div>
+          <h3 class="crate-card__title" id="crate-title">Caja Diaria Dalton</h3>
+          <p class="crate-card__hint" id="crate-hint">Abrí una caja al día. El premio se entrega al entrar al city.</p>
+          <button class="cta cta--crate" id="btn-open-crate" type="button" disabled>ABRIR CAJA</button>
+        </div>
+
         <div id="pending-update-banner" class="pending-update-banner hidden" role="status" aria-live="polite">
           <span id="pending-update-banner-text">Hay una actualización lista para instalar.</span>
           <button class="btn-primary btn-primary--compact" id="btn-pending-update-restart" type="button">
@@ -148,6 +158,7 @@
             <p class="brand-subtitle">ROLEPLAY SERVER</p>
           </div>
 
+          <div class="home-status-row">
           <div class="server-card" id="server-card" aria-live="polite">
             <div class="server-card__header">
               <div class="server-card__status-row">
@@ -158,6 +169,7 @@
             </div>
             <h3 class="server-card__name" id="server-hostname">Dalton Life</h3>
             <p class="server-card__players" id="server-players">—</p>
+          </div>
           </div>
 
           <div class="action-block hidden">
@@ -181,6 +193,31 @@
           </div>
           <div class="notifications-list" id="notifications-list"></div>
         </aside>
+
+        <div id="crate-overlay" class="crate-overlay hidden" aria-hidden="true">
+          <div class="crate-overlay__card" id="crate-overlay-card">
+            <p class="crate-overlay__kicker" id="crate-overlay-kicker">CAJA DIARIA</p>
+            <div class="crate-reel" id="crate-reel">
+              <div class="crate-reel__marker" aria-hidden="true"></div>
+              <div class="crate-reel__window">
+                <div class="crate-reel__track" id="crate-reel-track"></div>
+              </div>
+            </div>
+            <div class="crate-prize hidden" id="crate-prize">
+              <img class="crate-prize__img hidden" id="crate-prize-img" alt="" />
+              <div class="crate-prize__text">
+                <span class="crate-prize__rarity" id="crate-prize-rarity"></span>
+                <h3 class="crate-prize__label" id="crate-prize-label"></h3>
+                <div class="crate-prize__code-row hidden" id="crate-prize-code-row">
+                  <code class="crate-prize__code" id="crate-prize-code"></code>
+                  <button class="crate-prize__copy" id="btn-copy-crate-code" type="button">Copiar</button>
+                </div>
+              </div>
+            </div>
+            <p class="crate-overlay__hint" id="crate-overlay-hint">Abriendo...</p>
+            <button class="btn-secondary" id="btn-close-crate-overlay" type="button">Cerrar</button>
+          </div>
+        </div>
 
         <section id="update-overlay" class="update-overlay hidden" aria-hidden="true">
           <div class="update-card">
@@ -262,6 +299,7 @@
     </div>
 
     <script src="renderer/sounds.js"></script>
+    <script src="renderer/crates.js"></script>
     <script src="renderer/app.js"></script>
   </body>
 </html>

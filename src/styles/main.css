@@ -187,7 +187,8 @@ input {
 }
 
 #home-view.view--active {
-  display: block;
+  display: flex;
+  flex-direction: column;
   z-index: 10;
 }
 
@@ -379,7 +380,8 @@ input {
 .home-main {
   position: relative;
   z-index: 2;
-  height: calc(100% - 42px - 48px);
+  flex: 1;
+  min-height: 0;
   padding: 2.5rem 3rem;
   display: flex;
   flex-direction: column;
@@ -1354,6 +1356,369 @@ input {
   outline-offset: 2px;
 }
 
+.cta--crate {
+  width: 100%;
+  margin-top: 0.75rem;
+  color: rgb(28, 28, 28);
+  background: linear-gradient(135deg, var(--PrimaryColor), #e8e86a);
+  box-shadow: 0 0 18px var(--accent-soft);
+  font-size: 0.92rem;
+  padding: 0.75rem 1rem;
+}
+
+.home-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  max-width: 800px;
+}
+
+.home-status-row .server-card {
+  flex: 1 1 280px;
+}
+
+.crate-card {
+  max-width: 380px;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  background: rgba(20, 20, 20, 0.55);
+  backdrop-filter: blur(6px);
+  letter-spacing: normal;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.crate-card--compact {
+  position: absolute;
+  top: 48px;
+  right: 0.75rem;
+  z-index: 6;
+  width: 320px;
+  max-width: 320px;
+  -webkit-app-region: no-drag;
+}
+
+.crate-card--ready {
+  border-color: rgba(254, 254, 134, 0.28);
+}
+
+.crate-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.45rem;
+}
+
+.crate-card__kicker,
+.crate-card__state {
+  font-family: var(--AkrobatRegular), var(--font);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.45);
+}
+
+.crate-card__state {
+  color: var(--PrimaryColor);
+}
+
+.crate-card__title {
+  margin: 0;
+  font-family: var(--AkrobatSemiBold), var(--font);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.crate-card__hint {
+  margin: 0.3rem 0 0;
+  font-family: var(--AkrobatRegular), var(--font);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  color: rgba(245, 245, 245, 0.5);
+}
+
+.crate-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 8, 8, 0.72);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+
+.crate-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.crate-overlay.is-closing {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.crate-overlay__card {
+  width: min(920px, calc(100% - 2rem));
+  padding: 1.4rem 1.25rem 1.15rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(22, 22, 22, 0.98);
+  text-align: center;
+  transform: translateY(18px) scale(0.94);
+  opacity: 0;
+  transition:
+    transform 0.34s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.28s ease;
+}
+
+.crate-overlay.is-open .crate-overlay__card {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.crate-overlay.is-closing .crate-overlay__card {
+  transform: translateY(12px) scale(0.97);
+  opacity: 0;
+  transition-duration: 0.22s;
+}
+
+.crate-overlay__kicker {
+  margin: 0 0 1rem;
+  font-family: var(--AkrobatSemiBold), var(--font);
+  letter-spacing: 0.28em;
+  font-size: 0.84rem;
+  color: var(--PrimaryColor);
+}
+
+.crate-overlay__card.is-opening .crate-reel,
+.crate-overlay__card.is-opening .crate-prize {
+  display: none;
+}
+
+.crate-overlay__card.is-opening .crate-overlay__hint {
+  margin: 1.75rem 0 1.5rem;
+  font-family: var(--AkrobatSemiBold), var(--font);
+  font-size: 1.05rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.crate-overlay__card.is-opening #btn-close-crate-overlay {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.crate-reel {
+  position: relative;
+  margin: 0 0 1.1rem;
+}
+
+.crate-reel__window {
+  overflow: hidden;
+  height: 198px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 8, 8, 0.85);
+}
+
+.crate-reel__track {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  gap: 8px;
+  padding: 8px;
+  will-change: transform;
+}
+
+.crate-reel__item {
+  flex: 0 0 128px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.22rem;
+  padding: 0.5rem 0.4rem 0.55rem;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 5px solid var(--crate-rarity, #b0c3d9);
+  text-align: center;
+}
+
+.crate-reel__img {
+  display: block;
+  width: 70px;
+  height: 70px;
+  margin: 0.1rem auto;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.crate-reel__img.hidden {
+  display: none;
+}
+
+.crate-reel__item.is-winner {
+  border-color: var(--crate-rarity, var(--PrimaryColor));
+  background: #1c1c16;
+}
+
+.crate-reel__name {
+  width: 100%;
+  font-family: var(--AkrobatSemiBold), var(--font);
+  font-size: 0.86rem;
+  line-height: 1.2;
+  color: var(--text);
+  text-align: center;
+  word-break: break-word;
+}
+
+.crate-reel__rarity {
+  margin: 0;
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--crate-rarity, var(--muted));
+}
+
+.crate-reel__marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 2;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--PrimaryColor);
+  pointer-events: none;
+}
+
+.crate-reel__marker::before,
+.crate-reel__marker::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+}
+
+.crate-reel__marker::before {
+  top: 0;
+  border-top: 10px solid var(--PrimaryColor);
+}
+
+.crate-reel__marker::after {
+  bottom: 0;
+  border-bottom: 10px solid var(--PrimaryColor);
+}
+
+.crate-prize {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0 0 0.85rem;
+  padding: 1rem 1rem 1.05rem;
+  border: 1px solid var(--crate-rarity, rgba(255, 255, 255, 0.16));
+  background: rgba(255, 255, 255, 0.03);
+  text-align: center;
+}
+
+.crate-prize__img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+
+.crate-prize__img.hidden {
+  display: none;
+}
+
+.crate-prize__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.crate-prize__rarity {
+  display: block;
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--crate-rarity, var(--PrimaryColor));
+}
+
+.crate-prize__label {
+  margin: 0.25rem 0 0;
+  font-family: var(--AkrobatBold), var(--font);
+  font-size: 1.4rem;
+}
+
+.crate-prize__code-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: min(100%, 420px);
+  margin: 0.65rem 0 0;
+}
+
+.crate-prize__code-row.hidden {
+  display: none;
+}
+
+.crate-prize__code {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(8, 8, 8, 0.72);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.92rem;
+  letter-spacing: 0.02em;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crate-prize__copy {
+  flex: 0 0 auto;
+  border: 1px solid var(--StrokeColor);
+  border-radius: 6px;
+  padding: 0.55rem 0.85rem;
+  background: var(--BackgroundLight);
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--AkrobatSemiBold), var(--font);
+  font-size: 0.82rem;
+}
+
+.crate-prize__copy:hover {
+  background: rgba(124, 64, 160, 0.25);
+  border-color: var(--SecondaryColor);
+  color: var(--PrimaryColor);
+}
+
+.crate-overlay__hint {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .splash-logo,
   .splash-tagline,
@@ -1362,5 +1727,10 @@ input {
   #install-view.splash-exit,
   #home-view.home-enter {
     animation: none !important;
+  }
+
+  .crate-overlay,
+  .crate-overlay__card {
+    transition: none !important;
   }
 }

@@ -17,6 +17,8 @@ contextBridge.exposeInMainWorld('dalton', {
   showCacheClearResult: (result) => ipcRenderer.invoke('fivem:show-cache-result', result),
   getFiveMPlayState: () => ipcRenderer.invoke('fivem:get-play-state'),
   getServerStatus: () => ipcRenderer.invoke('fivem:get-server-status'),
+  getCrateStatus: () => ipcRenderer.invoke('crates:status'),
+  openCrate: () => ipcRenderer.invoke('crates:open'),
   getNews: () => ipcRenderer.invoke('news:get'),
   syncDiscordPresence: (state) => ipcRenderer.invoke('discord:sync', state),
   openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),

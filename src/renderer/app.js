@@ -114,8 +114,8 @@ let notificationItems = [];
 let consecutiveServerOfflineChecks = 0;
 let lastDiscordPresenceState = null;
 let fivemInstallWarningShown = false;
-const SERVER_STATUS_INTERVAL_MS = 15000;
-const SERVER_STATUS_INTERVAL_OFFLINE_MS = 30000;
+const SERVER_STATUS_INTERVAL_MS = 5000;
+const SERVER_STATUS_INTERVAL_OFFLINE_MS = 15000;
 const PLAY_STATE_INTERVAL_MS = 2000;
 const SPLASH_EXIT_TIMEOUT_MS = 1000;
 const SPLASH_DELAY_MS = 2700;
@@ -539,7 +539,11 @@ function isBlockingOverlayActive() {
   const isVisible = (element) =>
     element && !element.classList.contains("hidden");
 
-  return isVisible(updateOverlay) || isVisible(installOverlay);
+  return (
+    isVisible(updateOverlay) ||
+    isVisible(installOverlay) ||
+    window.daltonCrates?.isOpen?.()
+  );
 }
 
 function toggleSettings(open) {
@@ -1320,6 +1324,7 @@ async function bootstrap() {
     startServerStatusPolling();
     startPlayStatePolling();
     await loadNotifications();
+    await window.daltonCrates?.init?.();
     return;
   }
 
@@ -1478,6 +1483,7 @@ btnInstallLauncher.addEventListener("click", async () => {
     await loadNotifications();
     startServerStatusPolling();
     startPlayStatePolling();
+    await window.daltonCrates?.init?.();
   } catch (error) {
     hideInstallOverlay();
     setInstallStatus(
