@@ -17,6 +17,11 @@ if (!/^SERVER_IP=.+/m.test(contents)) {
   process.exit(1);
 }
 
+if (!/^CRATE_API_SECRET=.+/m.test(contents)) {
+  console.error('.env.production must define CRATE_API_SECRET.');
+  process.exit(1);
+}
+
 if (/^SERVER_IP=127\.0\.0\.1\s*$/m.test(contents)) {
   console.warn('Warning: SERVER_IP is still 127.0.0.1. Use your public server IP for client builds.');
 }
