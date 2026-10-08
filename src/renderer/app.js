@@ -89,6 +89,21 @@ const launcherInstallPathInput = document.getElementById(
 const btnInstallLauncher = document.getElementById("btn-install-launcher");
 const btnStartDalton = document.getElementById("btn-start-dalton");
 const startActionBlock = btnStartDalton?.closest(".action-block");
+const START_CTA_LABEL_DEFAULT = "ingresar a dalton life";
+
+function setStartCtaLabel(text) {
+  if (!btnStartDalton) {
+    return;
+  }
+
+  const label = btnStartDalton.querySelector(".cta__label");
+  if (label) {
+    label.textContent = text;
+    return;
+  }
+
+  btnStartDalton.textContent = text;
+}
 const serverStatusDot = document.getElementById("server-status-dot");
 const serverStatusText = document.getElementById("server-status-text");
 const serverPlayers = document.getElementById("server-players");
@@ -399,10 +414,12 @@ function isBackgroundMusicMuted() {
 }
 
 function getBackgroundMusicVolume() {
-  return window.daltonSounds?.clampVolumePercent?.(
-    config?.backgroundMusicVolume,
-    22,
-  ) ?? 22;
+  return (
+    window.daltonSounds?.clampVolumePercent?.(
+      config?.backgroundMusicVolume,
+      22,
+    ) ?? 22
+  );
 }
 
 function getAudioSettings() {
@@ -865,7 +882,7 @@ function updateStartButton(state) {
     setStartActionVisible(true);
     btnStartDalton.disabled = true;
     btnStartDalton.classList.add("cta--running");
-    btnStartDalton.textContent = "EN EJECUCIÓN";
+    setStartCtaLabel("en ejecución");
     updateServerCardConnectingAnimation(false);
     syncDiscordPresence(state);
     return;
@@ -875,7 +892,7 @@ function updateStartButton(state) {
     setStartActionVisible(true);
     btnStartDalton.disabled = true;
     btnStartDalton.classList.add("cta--connecting");
-    btnStartDalton.textContent = "CONECTANDO...";
+    setStartCtaLabel("conectando...");
     updateServerCardConnectingAnimation(true);
     syncDiscordPresence(state);
     return;
@@ -892,7 +909,7 @@ function updateStartButton(state) {
 
   setStartActionVisible(true);
   btnStartDalton.disabled = false;
-  btnStartDalton.textContent = "INICIAR DALTON LIFE";
+  setStartCtaLabel(START_CTA_LABEL_DEFAULT);
   syncDiscordPresence(state);
 }
 
@@ -1024,7 +1041,9 @@ function applyConfigToUi() {
   const versionLabel = formatVersionLabel(appVersion);
   footerVersion.textContent = versionLabel;
   installFooterVersion.textContent = versionLabel;
-  launcherInstallPathInput.value = String(config.launcherInstallPath || "").trim();
+  launcherInstallPathInput.value = String(
+    config.launcherInstallPath || "",
+  ).trim();
   document.getElementById("mute-music").checked = config.muteBackgroundMusic;
   document.getElementById("mute-sfx").checked = config.muteButtonSounds;
   updateMusicVolumeUi(getBackgroundMusicVolume());

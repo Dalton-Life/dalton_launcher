@@ -758,6 +758,45 @@ input {
   background: linear-gradient(135deg, #ffffa8, var(--PrimaryColor));
 }
 
+.cta--play {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: var(--AkrobatSemiBold), var(--font);
+  font-size: 1rem;
+  transition: color 0.25s ease, border-color 0.25s ease, transform 0.15s ease;
+}
+
+.cta--play::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--SecondaryColor);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 100%, 0 100%);
+  transform: translateX(-101%);
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cta--play.cta--primary:hover {
+  border-color: transparent;
+  box-shadow: none;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.cta--play.cta--primary:hover::before {
+  transform: translateX(0);
+}
+
+.cta--play .cta__label {
+  position: relative;
+  z-index: 1;
+}
+
 .cta:disabled,
 .cta.cta--running,
 .cta.cta--connecting,
@@ -1781,5 +1820,13 @@ input {
   .crate-overlay,
   .crate-overlay__card {
     transition: none !important;
+  }
+
+  .cta--play::before {
+    transition: none !important;
+  }
+
+  .cta--play.cta--primary:hover::before {
+    transform: translateX(0);
   }
 }
