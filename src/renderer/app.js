@@ -658,13 +658,14 @@ function updateServerPing(ping) {
 
   if (ping == null || Number.isNaN(ping)) {
     serverPing.textContent = "—";
-    serverPing.className = "server-card__ping server-card__ping--none";
+    serverPing.className =
+      "dashboard-chip dashboard-chip--ping server-card__ping server-card__ping--none";
     return;
   }
 
   const roundedPing = Math.max(0, Math.round(ping));
   serverPing.textContent = `${roundedPing} ms`;
-  serverPing.className = `server-card__ping server-card__ping--${getPingLevel(roundedPing)}`;
+  serverPing.className = `dashboard-chip dashboard-chip--ping server-card__ping server-card__ping--${getPingLevel(roundedPing)}`;
 }
 
 function setServerCardChecking(initial = false) {
@@ -678,7 +679,8 @@ function setServerCardChecking(initial = false) {
     serverCard.classList.remove("server-card--connecting");
   }
 
-  serverStatusDot.className = "server-card__dot server-card__dot--checking";
+  serverStatusDot.className =
+    "dashboard-card__dot dashboard-card__dot--checking server-card__dot server-card__dot--checking";
   serverStatusText.textContent = "Verificando";
   serverPlayers.textContent = "—";
 
@@ -715,7 +717,8 @@ function applyServerStatus(status) {
   if (!status.online) {
     consecutiveServerOfflineChecks += 1;
     serverCard.classList.remove("server-card--online-flash");
-    serverStatusDot.className = "server-card__dot server-card__dot--offline";
+    serverStatusDot.className =
+      "dashboard-card__dot dashboard-card__dot--offline server-card__dot server-card__dot--offline";
     serverStatusText.textContent = "Offline";
     serverHostname.textContent = "Dalton Life";
     serverPlayers.textContent = formatServerPlayersLine(status);
@@ -734,7 +737,8 @@ function applyServerStatus(status) {
     triggerServerOnlineAnimation();
   }
 
-  serverStatusDot.className = "server-card__dot server-card__dot--online";
+  serverStatusDot.className =
+    "dashboard-card__dot dashboard-card__dot--online server-card__dot server-card__dot--online";
   serverStatusText.textContent = "En línea";
   serverHostname.textContent =
     String(status.hostname || "Dalton Life").trim() || "Dalton Life";
@@ -770,7 +774,8 @@ async function refreshServerStatusNow() {
   if (!ip) {
     hasDisplayedServerStatus = true;
     lastServerOnlineState = false;
-    serverStatusDot.className = "server-card__dot server-card__dot--offline";
+    serverStatusDot.className =
+      "dashboard-card__dot dashboard-card__dot--offline server-card__dot server-card__dot--offline";
     serverStatusText.textContent = "Servidor no configurado";
     serverPlayers.textContent = "—";
     updateServerPing(null);

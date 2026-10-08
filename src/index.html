@@ -124,16 +124,6 @@
           </div>
         </header>
 
-        <div class="crate-card crate-card--compact" id="crate-card" aria-live="polite">
-          <div class="crate-card__header">
-            <span class="crate-card__kicker">EXCLUSIVO LAUNCHER</span>
-            <span class="crate-card__state" id="crate-state">—</span>
-          </div>
-          <h3 class="crate-card__title" id="crate-title">Caja Diaria Dalton</h3>
-          <p class="crate-card__hint" id="crate-hint">Abrí una caja al día. El premio se entrega al entrar al city.</p>
-          <button class="cta cta--crate" id="btn-open-crate" type="button" disabled>ABRIR CAJA</button>
-        </div>
-
         <div id="pending-update-banner" class="pending-update-banner hidden" role="status" aria-live="polite">
           <span id="pending-update-banner-text">Hay una actualización lista para instalar.</span>
           <button class="btn-primary btn-primary--compact" id="btn-pending-update-restart" type="button">
@@ -158,18 +148,41 @@
             <p class="brand-subtitle">ROLEPLAY SERVER</p>
           </div>
 
-          <div class="home-status-row">
-          <div class="server-card" id="server-card" aria-live="polite">
-            <div class="server-card__header">
-              <div class="server-card__status-row">
-                <span class="server-card__dot server-card__dot--checking" id="server-status-dot"></span>
-                <span class="server-card__status" id="server-status-text">VERIFICANDO...</span>
+          <div class="home-dashboard" role="group" aria-label="Estado del servidor y recompensas">
+            <article class="dashboard-card server-card" id="server-card" aria-live="polite">
+              <header class="dashboard-card__header">
+                <span class="dashboard-card__kicker">Servidor</span>
+                <div class="dashboard-card__badge">
+                  <span
+                    class="dashboard-card__dot dashboard-card__dot--checking server-card__dot server-card__dot--checking"
+                    id="server-status-dot"
+                  ></span>
+                  <span class="dashboard-card__status server-card__status" id="server-status-text">Verificando</span>
+                </div>
+              </header>
+              <h3 class="dashboard-card__title server-card__name" id="server-hostname">Dalton Life</h3>
+              <div class="dashboard-card__chips">
+                <span class="dashboard-chip server-card__players" id="server-players">—</span>
+                <span class="dashboard-chip dashboard-chip--ping server-card__ping server-card__ping--none" id="server-ping">—</span>
               </div>
-              <span class="server-card__ping server-card__ping--none" id="server-ping">—</span>
-            </div>
-            <h3 class="server-card__name" id="server-hostname">Dalton Life</h3>
-            <p class="server-card__players" id="server-players">—</p>
-          </div>
+            </article>
+
+            <article class="dashboard-card crate-card" id="crate-card" aria-live="polite">
+              <header class="dashboard-card__header">
+                <span class="dashboard-card__kicker">Caja</span>
+                <div class="dashboard-card__badge">
+                  <span class="dashboard-card__dot dashboard-card__dot--idle crate-card__dot" id="crate-status-dot"></span>
+                  <span class="dashboard-card__status crate-card__state" id="crate-state">—</span>
+                </div>
+              </header>
+              <h3 class="dashboard-card__title crate-card__title" id="crate-title">Caja diaria Dalton</h3>
+              <p class="dashboard-card__detail crate-card__hint" id="crate-hint">
+                Abrí una caja al día. El premio se entrega al entrar al city.
+              </p>
+              <div class="dashboard-card__footer">
+                <button class="cta cta--crate" id="btn-open-crate" type="button" disabled>ABRIR CAJA</button>
+              </div>
+            </article>
           </div>
 
           <div class="action-block hidden">

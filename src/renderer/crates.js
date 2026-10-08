@@ -16,6 +16,7 @@ const TILE_STEP = TILE_WIDTH + TILE_GAP;
 const REEL_PADDING = 8;
 
 const crateCard = document.getElementById("crate-card");
+const crateStatusDot = document.getElementById("crate-status-dot");
 const crateState = document.getElementById("crate-state");
 const crateTitle = document.getElementById("crate-title");
 const crateHint = document.getElementById("crate-hint");
@@ -178,14 +179,36 @@ function applyPrizeToOverlay(prize, redeemCode) {
   }
 }
 
+function formatCrateHint(message) {
+  const text = String(message || "").trim();
+
+  if (!text) {
+    return "El servidor tiene que estar online para abrir la caja.";
+  }
+
+  if (/CRATE_API_SECRET/i.test(text)) {
+    return "La caja diaria no está disponible en este momento.";
+  }
+
+  return text;
+}
+
+function setCrateCardTone(tone) {
+  if (crateStatusDot) {
+    crateStatusDot.className = `dashboard-card__dot dashboard-card__dot--${tone} crate-card__dot`;
+  }
+
+  crateCard?.classList.toggle("crate-card--ready", tone === "ready");
+  crateCard?.classList.toggle("crate-card--cooldown", tone === "cooldown");
+}
+
 function renderCrateCard() {
   if (!crateStatus?.ok) {
-    crateState.textContent = "OFFLINE";
-    crateHint.textContent =
-      crateStatus?.error || "El server tiene que estar online para abrir la caja.";
+    setCrateCardTone("offline");
+    crateState.textContent = "No disponible";
+    crateHint.textContent = formatCrateHint(crateStatus?.error);
     btnOpenCrate.disabled = true;
     btnOpenCrate.textContent = "ABRIR CAJA";
-    crateCard?.classList.remove("crate-card--ready");
     return;
   }
 
@@ -194,30 +217,31 @@ function renderCrateCard() {
   }
 
   if (crateStatus.canOpen) {
-    crateState.textContent = "DISPONIBLE";
-    crateHint.textContent = "Canjea usando el codigo al entrar a Dalton Life.";
+    setCrateCardTone("ready");
+    crateState.textContent = "Disponible";
+    crateHint.textContent = "Canjea usando el código al entrar a Dalton Life.";
     btnOpenCrate.disabled = crateOpening;
     btnOpenCrate.textContent = "ABRIR CAJA";
-    crateCard?.classList.add("crate-card--ready");
     return;
   }
 
-  crateCard?.classList.remove("crate-card--ready");
   btnOpenCrate.disabled = true;
 
   if (crateStatus.prize?.label) {
-    crateState.textContent = crateStatus.claimed ? "ENTREGADA" : "PENDIENTE";
+    setCrateCardTone(crateStatus.claimed ? "claimed" : "pending");
+    crateState.textContent = crateStatus.claimed ? "Entregada" : "Pendiente";
     crateHint.textContent = crateStatus.claimed
       ? `Hoy te tocó ${crateStatus.prize.label}. Volvé mañana.`
       : `Hoy te tocó ${crateStatus.prize.label}. Entrá al city para recibirlo.`;
   } else {
-    crateState.textContent = "ABIERTA";
+    setCrateCardTone("cooldown");
+    crateState.textContent = "Esperando";
     crateHint.textContent = "Ya abriste la caja de hoy. Volvé mañana.";
   }
 
   const remaining = Number(crateStatus.nextOpenIn) || 0;
   btnOpenCrate.textContent =
-    remaining > 0 ? `PRÓXIMA ${formatCountdown(remaining)}` : "ABRIR CAJA";
+    remaining > 0 ? `Próxima ${formatCountdown(remaining)}` : "ABRIR CAJA";
 }
 
 function startCrateCountdown() {
